@@ -1,63 +1,31 @@
-export type SiteConfig = typeof siteConfig;
-
+// src/config/site.ts
 export const siteConfig = {
-  name: "Vite + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
-  navItems: [
-    {
-      label: "Home",
-      href: "/",
-    },
-    {
-      label: "Docs",
-      href: "/docs",
-    },
-    {
-      label: "Pricing",
-      href: "/pricing",
-    },
-    {
-      label: "Blog",
-      href: "/blog",
-    },
-    {
-      label: "About",
-      href: "/about",
-    },
+  name: "MASKoff",
+  description:
+    "A full-stack job platform with community engagement, direct messaging, and interview scheduling.",
+  defaultNavItems: [
+    { label: "Home", href: "/home" },
+    { label: "Posts", href: "/posts" },
+    { label: "Jobs", href: "/jobs" },
+    { label: "Messages", href: "/messages" },
+    { label: "Login", href: "/login" },
+    { label: "Create User", href: "/newuser" },
+    { label: "About", href: "/about" },
+  ],
+  dashboardNavItems: [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Find Users", href: "/find-users" },
+    { label: "Friend List", href: "/friends" },
+    { label: "Messages", href: "/messages" },
+    { label: "Logout", href: "/logout" },
   ],
   navMenuItems: [
-    {
-      label: "Profile",
-      href: "/profile",
-    },
-    {
-      label: "Dashboard",
-      href: "/dashboard",
-    },
-    {
-      label: "Projects",
-      href: "/projects",
-    },
-    {
-      label: "Team",
-      href: "/team",
-    },
-    {
-      label: "Calendar",
-      href: "/calendar",
-    },
-    {
-      label: "Settings",
-      href: "/settings",
-    },
-    {
-      label: "Help & Feedback",
-      href: "/help-feedback",
-    },
-    {
-      label: "Logout",
-      href: "/logout",
-    },
+    { label: "Profile", href: "/profile" },
+    { label: "Projects", href: "/projects" },
+    { label: "Team", href: "/team" },
+    { label: "Calendar", href: "/calendar" },
+    { label: "Settings", href: "/settings" },
+    { label: "Help & Feedback", href: "/help-feedback" },
   ],
   links: {
     github: "https://github.com/frontio-ai/heroui",

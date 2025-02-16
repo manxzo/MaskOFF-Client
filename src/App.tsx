@@ -1,20 +1,30 @@
-import { Route, Routes } from "react-router-dom";
+// src/App.tsx
 
-import IndexPage from "@/pages/index";
-import DocsPage from "@/pages/docs";
-import PricingPage from "@/pages/pricing";
-import BlogPage from "@/pages/blog";
-import AboutPage from "@/pages/about";
+import { Navigate, Route, Routes } from "react-router-dom";
+
+
+// Import your pages (ensure you create/update these pages using @heroui/react components)
+import Home from "./pages/Home";
+import { Login } from "./pages/Login";
+import { CreateUser } from "./pages/CreateUser";
+import { Dashboard } from "./pages/Dashboard";
+import { FindUsers } from "./pages/FindUsers";
+import { Friends } from "./pages/Friends";
+import { Messages } from "./pages/Messages";
 
 function App() {
   return (
-    <Routes>
-      <Route element={<IndexPage />} path="/" />
-      <Route element={<DocsPage />} path="/docs" />
-      <Route element={<PricingPage />} path="/pricing" />
-      <Route element={<BlogPage />} path="/blog" />
-      <Route element={<AboutPage />} path="/about" />
-    </Routes>
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" />} />
+        <Route element={<Home />} path="/home" />
+        <Route element={<Login />} path="/login" />
+        <Route element={<CreateUser />} path="/newuser" />
+        <Route element={<Dashboard />} path="/dashboard" />
+        <Route element={<FindUsers />} path="/find-users" />
+        <Route element={<Friends />} path="/friends" />
+        <Route element={<Messages />} path="/messages" />
+        {/* You can add additional routes as needed */}
+      </Routes>
   );
 }
 
