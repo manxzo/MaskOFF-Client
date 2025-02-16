@@ -1,5 +1,5 @@
 // src/pages/Friends.tsx
-import React, { useContext } from "react";
+import { useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import { UserConfigContext } from "@/config/UserConfig";
 import {Card} from '@heroui/react'
