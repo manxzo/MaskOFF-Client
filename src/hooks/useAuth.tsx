@@ -83,6 +83,9 @@ export const useAuth = () => {
         // Optionally, retrieve complete user data:
         const userData = await fetchUserData(userID);
         setUser(userData);
+        // Temporarily, shawn 
+        setError("");
+        alert("Account created successfully!");
         return userData;
       } else {
         setError("Registration failed");
