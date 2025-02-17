@@ -1,4 +1,5 @@
-import { useState, useContext } from "react";
+// src/pages/Messages.tsx
+import React, { useState, useContext, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
@@ -6,57 +7,54 @@ import { Divider } from "@heroui/divider";
 import DefaultLayout from "@/layouts/default";
 import { UserConfigContext } from "@/config/UserConfig";
 import { useMessages } from "@/hooks/useMessages";
-import { useEffect } from "react";
 import { retrieveAllUsers } from "@/services/services";
+
 export const Messages = () => {
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [message, setMessage] = useState("");
-  const {sendMsg,loading} = useMessages();
-  const [allUsers,setAllUsers] = useState([]);
-  const { user:currentUser } = useContext(UserConfigContext);
-  const [error,setError] = useState("");
-    useEffect(() => {
-      const fetchUsers = async () => {
-       
-        try {
-          const res = await retrieveAllUsers();
-          const allUsers = res.filter((user)=>user.userID!==currentUser?.userID)
-          setAllUsers(allUsers);
-        } catch (err: any) {
-        } finally {
-  
-        }
-      };
-      fetchUsers();
-    }, []);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  const { sendMsg, loading } = useMessages();
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const { user: currentUser } = useContext(UserConfigContext) || {};
+  const [error, setError] = useState<string>("");
 
-  
-
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await retrieveAllUsers();
+        // Filter out the current user (if logged in)
+        const filteredUsers = res.filter(
+          (user: any) => user.userID !== currentUser?.userID
+        );
+        setAllUsers(filteredUsers);
+      } catch (err: any) {
+        setError(err.message || "Error retrieving users");
+      }
+    };
+    fetchUsers();
+  }, [currentUser]);
 
   // Find the chat between the current user and the selected user.
-  const currentChat = currentUser.chats?.find((chat) =>
+  const currentChat = currentUser?.chats?.find((chat: any) =>
     chat.participants.includes(selectedUserId)
   );
 
   // Handle sending the message.
   const handleSendMessage = async () => {
-    if(selectedUserId && message){
-    try{
-    await sendMsg(selectedUserId,message);
-    setMessage("");
+    if (selectedUserId && message.trim()) {
+      try {
+        await sendMsg(selectedUserId, message);
+        setMessage("");
+        setError("");
+      } catch (err: any) {
+        setError(err.message || "Error sending message");
+      }
+    } else {
+      setError("Type a message!");
     }
-    catch(err){
-      setError(err)
-    }
-  }
-  else{
-    setError("Type a message!")
-  }
-    
   };
 
   // Allow sending on Enter key press (without Shift).
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -72,11 +70,15 @@ export const Messages = () => {
           <Divider />
           <CardBody>
             <div className="flex flex-col gap-2">
-              {allUsers?.map((user) => (
+              {allUsers.map((user) => (
                 <Button
-                  key={user.id}
-                  color={selectedUserId === user.userID ? "primary" : "default"}
-                  variant={selectedUserId === user.userID ? "solid" : "light"}
+                  key={user.userID}
+                  color={
+                    selectedUserId === user.userID ? "primary" : "default"
+                  }
+                  variant={
+                    selectedUserId === user.userID ? "solid" : "light"
+                  }
                   onPress={() => setSelectedUserId(user.userID)}
                 >
                   {user.username}
@@ -90,7 +92,7 @@ export const Messages = () => {
         <Card className="flex-1 h-full">
           <CardHeader>
             {selectedUserId
-              ? allUsers?.find((user) => user.userID === selectedUserId)
+              ? allUsers.find((user) => user.userID === selectedUserId)
                   ?.username
               : "Select a user"}
           </CardHeader>
@@ -99,9 +101,11 @@ export const Messages = () => {
             {/* Chat messages display */}
             <div className="flex-1 flex flex-col gap-2 overflow-auto">
               {currentChat && currentChat.messages.length > 0 ? (
-                currentChat.messages.map((msg) => (
+                currentChat.messages.map((msg: any) => (
                   <div key={msg.messageID} className="p-1 border rounded">
-                    <strong>{msg.sender === currentUser.userID ? "You" : "Them"}</strong>
+                    <strong>
+                      {msg.sender === currentUser?.userID ? "You" : "Them"}
+                    </strong>
                     : {msg.message}
                   </div>
                 ))
