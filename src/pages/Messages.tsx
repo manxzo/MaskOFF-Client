@@ -16,12 +16,18 @@ export const Messages = () => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const { user: currentUser } = useContext(UserConfigContext) || {};
   const [error, setError] = useState<string>("");
-
+  const [currentChat, setCurrentChat] = useState({
+    chatID: "",
+    participants: [],
+    messages: [],
+    createdAt: null,
+    updatedAt: null,
+  });
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await retrieveAllUsers();
-        // Filter out the current user (if logged in)
+        // Filter out the current user
         const filteredUsers = res.filter(
           (user: any) => user.userID !== currentUser?.userID
         );
@@ -34,9 +40,14 @@ export const Messages = () => {
   }, [currentUser]);
 
   // Find the chat between the current user and the selected user.
-  const currentChat = currentUser?.chats?.find((chat: any) =>
-    chat.participants.includes(selectedUserId)
-  );
+  useEffect(() => {
+    const chatLog = currentUser.chats.filter((chat) =>
+      chat?.participants?.some((userID) => userID === selectedUserId)
+    )[0];
+    if(chatLog?.participants?.length>1 && selectedUserId){
+    setCurrentChat(chatLog);
+    }
+  }, [selectedUserId]);
 
   // Handle sending the message.
   const handleSendMessage = async () => {
@@ -46,6 +57,7 @@ export const Messages = () => {
         setMessage("");
         setError("");
       } catch (err: any) {
+        // Ensure error is a string so React can render it.
         setError(err.message || "Error sending message");
       }
     } else {
@@ -73,12 +85,8 @@ export const Messages = () => {
               {allUsers.map((user) => (
                 <Button
                   key={user.userID}
-                  color={
-                    selectedUserId === user.userID ? "primary" : "default"
-                  }
-                  variant={
-                    selectedUserId === user.userID ? "solid" : "light"
-                  }
+                  color={selectedUserId === user.userID ? "primary" : "default"}
+                  variant={selectedUserId === user.userID ? "solid" : "light"}
                   onPress={() => setSelectedUserId(user.userID)}
                 >
                   {user.username}
@@ -101,18 +109,31 @@ export const Messages = () => {
             {/* Chat messages display */}
             <div className="flex-1 flex flex-col gap-2 overflow-auto">
               {currentChat && currentChat.messages.length > 0 ? (
-                currentChat.messages.map((msg: any) => (
-                  <div key={msg.messageID} className="p-1 border rounded">
-                    <strong>
-                      {msg.sender === currentUser?.userID ? "You" : "Them"}
-                    </strong>
-                    : {msg.message}
-                  </div>
-                ))
+                [...currentChat.messages]
+                  .sort(
+                    (a, b) =>
+                      new Date(a.timestamp).getTime() -
+                      new Date(b.timestamp).getTime()
+                  )
+                  .map((msg: any) => (
+                    <div key={msg.messageID} className="p-1 border rounded">
+                      <div className="flex justify-between items-center">
+                        <strong>
+                          {msg.sender === currentUser?.userID ? "You" : allUsers.find((user) => user.userID === selectedUserId).username}
+                        </strong>
+                        <span className="text-xs text-gray-500">
+                          {new Date(msg.timestamp).toLocaleDateString()}{" "}
+                          {new Date(msg.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div>{msg.message}</div>
+                    </div>
+                  ))
               ) : (
                 <p>No messages</p>
               )}
             </div>
+
             {/* Message input area */}
             <div className="mt-4 flex gap-2">
               <Input

@@ -25,11 +25,12 @@ export const useAuth = () => {
         const createdAt = new Date(chat.createdAt);
         const updatedAt = new Date(chat.updatedAt);
         const messages = await retrieveChatMessages(chatId);
+        const mappedParticipants = chat.participants.map((participant)=>participant.userID)
         const mappedMessages = (messages || []).map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp),
         }));
-        return { ...chat, createdAt, updatedAt, messages: mappedMessages };
+        return { ...chat, createdAt, updatedAt, messages: mappedMessages,participants:mappedParticipants};
       })
     );
     return chats;

@@ -118,7 +118,7 @@ export const sendMessage = async (recipientID: string, text: string): Promise<an
   const token = getAuthToken();
   const response = await axios.post(
     `${SERVER_URL}chat/send`,
-    { recipientID, text },
+    { recipientID:recipientID, text:text },
     { headers: { Authorization: `Bearer ${token}` } }
   );
   return response.data;
