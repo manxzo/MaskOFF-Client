@@ -3,8 +3,12 @@ import { useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import { UserConfigContext } from "@/config/UserConfig";
 import {Card} from '@heroui/react'
+import { useFriends } from "@/hooks/useFriends";
+import { Button } from "@heroui/button";
+import { DeleteIcon, HeartFilledIcon } from "@/components/icons";
 export const Friends = () => {
   const { user } = useContext(UserConfigContext)!;
+  const {acceptRequest,deleteFriendRequest} = useFriends();
   return (
     <DefaultLayout>
       <div className="p-8">
@@ -30,7 +34,8 @@ export const Friends = () => {
             user.friendRequests.map((req) => (
               <Card key={req.userID} className="p-4 my-2">
                 <h3>{req.username}</h3>
-                <p>ID: {req.userID}</p>
+                <Button isIconOnly onPress={()=>acceptRequest(req.userID)}><HeartFilledIcon/></Button>
+                <Button isIconOnly onPress={()=>deleteFriendRequest(req.userID)}><DeleteIcon/></Button>
               </Card>
             ))
           )}

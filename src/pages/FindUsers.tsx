@@ -1,19 +1,27 @@
 // src/pages/FindUsers.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Card } from "@heroui/card";
 import { retrieveAllUsers } from "@/services/services";
+import { useContext } from "react";
+import { UserConfigContext } from "@/config/UserConfig";
+import { Button } from "@heroui/button";
+import { HeartFilledIcon } from "@/components/icons";
+import { useFriends } from "@/hooks/useFriends";
 
 export const FindUsers = () => {
-  const [users, setUsers] = useState<any[]>([]);
+  const [allUsers, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-
+  const context = useContext(UserConfigContext);
+  const {user:currentUser} = context;
+  const {sendRequest} = useFriends();
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const allUsers = await retrieveAllUsers();
+        const res = await retrieveAllUsers();
+        const allUsers = res.filter((user)=>user.userID!==currentUser?.userID)
         setUsers(allUsers);
       } catch (err: any) {
         setError(err.message || "Error retrieving users");
@@ -31,10 +39,10 @@ export const FindUsers = () => {
         {loading && <p>Loading...</p>}
         {error && <p color="danger">{error}</p>}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {users.map((user) => (
+          {allUsers.map((user) => (
             <Card key={user.userID} className="p-4">
               <h1>{user.username}</h1>
-              <p>ID: {user.userID}</p>
+              <Button isIconOnly color="danger" onPress={()=>sendRequest(user.userID)}><HeartFilledIcon/></Button>
             </Card>
           ))}
         </div>

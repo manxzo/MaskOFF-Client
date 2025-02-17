@@ -5,9 +5,6 @@ export const siteConfig = {
     "A full-stack job platform with community engagement, direct messaging, and interview scheduling.",
   defaultNavItems: [
     { label: "Home", href: "/home" },
-    { label: "Posts", href: "/posts" },
-    { label: "Jobs", href: "/jobs" },
-    { label: "Messages", href: "/messages" },
     { label: "Login", href: "/login" },
     { label: "Create User", href: "/newuser" },
     { label: "About", href: "/about" },

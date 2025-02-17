@@ -3,7 +3,7 @@ import axios from "axios";
 const SERVER_URL = "http://localhost:3000/api/";
 
 // Helper function to get token from localStorage
-const getAuthToken = (): string | null => localStorage.getItem("token");
+export const getAuthToken = (): string | null => localStorage.getItem("token");
 
 // Create User (Signup)
 export const createUser = async (userInfo: { username: string; password: string }): Promise<any> => {

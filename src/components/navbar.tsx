@@ -29,13 +29,12 @@ import { Logo } from "@/components/icons";
 import { UserConfigContext } from "@/config/UserConfig";
 import { logout as logoutService } from "@/services/services";
 import { useNavigate } from "react-router-dom";
-
 export const Navbar = () => {
   const { user, setUser } = useContext(UserConfigContext)!;
   const navigate = useNavigate();
-
+  const token = localStorage.getItem("token");
   // Choose nav items based on whether the user is logged in.
-  const navItems = user.userID
+  const navItems = token
     ? siteConfig.dashboardNavItems
     : siteConfig.defaultNavItems;
 
