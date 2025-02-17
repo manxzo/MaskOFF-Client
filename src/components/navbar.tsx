@@ -89,7 +89,7 @@ export const Navbar = () => {
           {navItems.map((item) => (
             <NavbarItem key={item.href}>
               {item.label === "Logout" ? (
-                <Button variant="flat" onClick={handleLogout}>
+                <Button variant="flat" onPress={handleLogout}>
                   {item.label}
                 </Button>
               ) : (
