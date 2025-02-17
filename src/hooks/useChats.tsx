@@ -10,23 +10,33 @@ export const useChat = () => {
 
   // Helper: refresh chats data.
   const refreshChats = async () => {
+    console.log("🔄 Starting refreshChats in useChats");
     try {
       const chatsRaw = await retrieveChats();
+      console.log("📥 Retrieved raw chats:", chatsRaw);
+      
       const chats = await Promise.all(
         (chatsRaw || []).map(async (chat: any) => {
           const chatId = chat.chatID;
-          const createdAt = new Date(chat.createdAt);
-          const updatedAt = new Date(chat.updatedAt);
           const messages = await retrieveChatMessages(chatId);
+          console.log(`📨 Retrieved messages for chat ${chatId}:`, messages);
+          
           const mappedMessages = (messages || []).map((msg: any) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
           }));
-          return { ...chat, createdAt, updatedAt, messages: mappedMessages };
+          return { 
+            ...chat, 
+            createdAt: new Date(chat.createdAt), 
+            updatedAt: new Date(chat.updatedAt), 
+            messages: mappedMessages 
+          };
         })
       );
+      console.log("✅ Updated chats state with:", chats);
       updateChats(chats);
     } catch (err: any) {
+      console.error("❌ Error in refreshChats:", err);
       setError(err.message || "Error refreshing chats");
       throw err;
     }
@@ -48,7 +58,7 @@ export const useChat = () => {
   };
 
   // Find an existing chat with a specific user.
-  // (This example uses axios directly since it wasn’t wrapped in services.)
+  // (This example uses axios directly since it wasn't wrapped in services.)
   const findChat = async (otherUserId: string) => {
     setLoading(true);
     try {

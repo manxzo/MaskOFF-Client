@@ -1,6 +1,8 @@
 // src/App.tsx
 
 import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 
 // Import your pages (ensure you create/update these pages using @heroui/react components)
@@ -12,7 +14,23 @@ import { FindUsers } from "./pages/FindUsers";
 import { Friends } from "./pages/Friends";
 import { Messages } from "./pages/Messages";
 
-function App() {
+const App = () => {
+  const { refreshUserSession } = useAuth();
+
+  useEffect(() => {
+    console.log("🔄 App mounted - checking session");
+    const initializeSession = async () => {
+      try {
+        const restoredSession = await refreshUserSession();
+        console.log("📥 Session restoration result:", restoredSession ? "Success" : "No session");
+      } catch (err) {
+        console.error("❌ Error initializing session:", err);
+      }
+    };
+
+    initializeSession();
+  }, []);
+
   return (
       <Routes>
         <Route path="/" element={<Navigate to="/home" />} />

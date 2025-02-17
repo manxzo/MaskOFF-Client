@@ -10,23 +10,31 @@ export const useMessages = () => {
 
   // Helper: refresh chats data.
   const refreshChats = async () => {
+    console.log("🔄 Starting refreshChats in useMessages");
     try {
       const chatsRaw = await retrieveChats();
+      console.log("📥 Retrieved raw chats:", chatsRaw);
+      
       const chats = await Promise.all(
         (chatsRaw || []).map(async (chat: any) => {
-          const chatId = chat.chatID;
-          const createdAt = new Date(chat.createdAt);
-          const updatedAt = new Date(chat.updatedAt);
-          const messages = await retrieveChatMessages(chatId);
+          const messages = await retrieveChatMessages(chat.chatID);
+          console.log(`📨 Retrieved messages for chat ${chat.chatID}:`, messages);
+          
           const mappedMessages = (messages || []).map((msg: any) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
           }));
-          return { ...chat, createdAt, updatedAt, messages: mappedMessages };
+          return { ...chat, 
+            createdAt: new Date(chat.createdAt), 
+            updatedAt: new Date(chat.updatedAt), 
+            messages: mappedMessages 
+          };
         })
       );
+      console.log("✅ Processed chats with messages:", chats);
       updateChats(chats);
     } catch (err: any) {
+      console.error("❌ Error in refreshChats:", err);
       setError(err.message || "Error refreshing chats");
       throw err;
     }
@@ -34,12 +42,15 @@ export const useMessages = () => {
 
   // Send a message (auto-creates a chat if needed).
   const sendMsg = async (recipientID: string, text: string) => {
+    console.log("📤 Attempting to send message to:", recipientID);
     setLoading(true);
     try {
       const response = await sendMessage(recipientID, text);
+      console.log("📨 Send message response:", response);
       await refreshChats();
       return response;
     } catch (err: any) {
+      console.error("❌ Error sending message:", err);
       setError(err.message || "Error sending message");
       throw err;
     } finally {
