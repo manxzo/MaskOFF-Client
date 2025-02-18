@@ -1,5 +1,5 @@
 // src/pages/Messages.tsx
-import React, { useState, useContext, useMemo } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
@@ -19,16 +19,17 @@ export const Messages = () => {
   const { user } = useContext(UserConfigContext)!;
   const currentUserID = user.userID;
   const { sendMsg, loading } = useMessages();
-  const {chats}= useChat();
+  const { chats } = useChat();
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  // Build a unified contact list from chats and friends.
-  const contacts: Contact[] = useMemo(() => {
+  // Build a unified contact list based on the local chats and friends.
+  useEffect(() => {
     const contactsMap = new Map<string, Contact>();
-
-    // Process chats (each chat always has 2 participants).
+    console.log(chats)
+    // Process chats: each chat always has 2 participants.
     chats.forEach((chat) => {
       // Always pick the other participant.
       const otherParticipant = chat.participants.find(
@@ -53,11 +54,10 @@ export const Messages = () => {
       }
     });
 
-    return Array.from(contactsMap.values());
-  }, [user, currentUserID]);
+    setContacts(Array.from(contactsMap.values()));
+  }, [chats, user.friends, currentUserID]);
 
-  // Instead of storing currentChat in local state,
-  // derive it directly from user.chats so it always reflects the latest state.
+  // Derive the current chat directly from the local chats.
   const currentChat = selectedContact
     ? chats.find((chat) =>
         chat.participants.some((p) => p.userID === selectedContact.id)

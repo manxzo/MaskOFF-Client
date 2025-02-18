@@ -16,66 +16,73 @@ export const useAuth = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Helper: refresh chats data by retrieving chats and their messages.
-  const refreshChats = async (): Promise<any[]> => {
-    console.log("🔄 Starting refreshChats in useAuth");
+  // Common helper used here with mapParticipants = true.
+  const fetchAndProcessChats = async (mapParticipants: boolean = false) => {
     const chatsRaw = await retrieveChats();
-    console.log("📥 Retrieved raw chats:", chatsRaw);
-    
     const chats = await Promise.all(
       (chatsRaw || []).map(async (chat: any) => {
-        const chatId = chat.chatID;
-        const messages = await retrieveChatMessages(chatId);
-        console.log(`📨 Retrieved messages for chat ${chatId}:`, messages);
-        
-        const mappedParticipants = chat.participants.map((participant) => ({userID:participant.userID,username:participant.username}));
+        const messages = await retrieveChatMessages(chat.chatID);
         const mappedMessages = (messages || []).map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp),
         }));
-        return { 
-          ...chat, 
-          createdAt: new Date(chat.createdAt), 
-          updatedAt: new Date(chat.updatedAt), 
+        if (mapParticipants) {
+          const mappedParticipants = chat.participants.map((participant: any) => ({
+            userID: participant.userID,
+            username: participant.username,
+          }));
+          return {
+            ...chat,
+            createdAt: new Date(chat.createdAt),
+            updatedAt: new Date(chat.updatedAt),
+            messages: mappedMessages,
+            participants: mappedParticipants,
+          };
+        }
+        return {
+          ...chat,
+          createdAt: new Date(chat.createdAt),
+          updatedAt: new Date(chat.updatedAt),
           messages: mappedMessages,
-          participants: mappedParticipants
         };
       })
     );
+    return chats;
+  };
+
+  // Helper: refresh chats data.
+  const refreshChats = async (): Promise<any[]> => {
+    console.log("🔄 Starting refreshChats in useAuth");
+    const chats = await fetchAndProcessChats(true); // map participants
     console.log("✅ Processed chats with messages:", chats);
     return chats;
   };
 
-  // Add a new function to handle page refresh authentication
+  // Refresh user session (called on page refresh)
   const refreshUserSession = async () => {
     console.log("🔄 Checking stored session on page refresh");
     const token = localStorage.getItem("token");
     console.log("📝 Stored token:", token ? "Found" : "Not found");
-    
+
     if (token) {
       try {
-        // Get the stored user ID if available
         const storedUserID = localStorage.getItem("userID");
         console.log("👤 Stored userID:", storedUserID);
-        
         if (!storedUserID) {
           console.error("❌ No userID found in localStorage");
           return null;
         }
 
-        // Fetch all necessary user data
         console.log("📡 Fetching user data after refresh");
         const [userData, friendRequests, friends] = await Promise.all([
           fetchUserData(storedUserID),
           retrieveFriendReq(),
           retrieveFriendList(),
         ]);
-        
         console.log("📥 Fetched user data:", userData);
         console.log("👥 Fetched friends:", friends);
         console.log("📩 Fetched friend requests:", friendRequests);
 
-        // Get chats and messages
         const chats = await refreshChats();
         console.log("💬 Fetched chats after refresh:", chats);
 
@@ -108,24 +115,22 @@ export const useAuth = () => {
     try {
       const loginResponse = await login(username, password);
       console.log("📥 Login response:", loginResponse);
-      
+
       if (loginResponse.token && loginResponse.user) {
-        // Store necessary data in localStorage
         localStorage.setItem("token", loginResponse.token);
         localStorage.setItem("userID", loginResponse.user.userID);
         console.log("💾 Stored token and userID in localStorage");
 
         const userID = loginResponse.user.userID;
         console.log("👤 User ID:", userID);
-        
-        const [friendRequests, friends, chatsRaw] = await Promise.all([
+
+        const [friendRequests, friends] = await Promise.all([
           retrieveFriendReq(),
           retrieveFriendList(),
-          retrieveChats(),
         ]);
         console.log("👥 Retrieved friends:", friends);
         console.log("📩 Retrieved friend requests:", friendRequests);
-        
+
         const chats = await refreshChats();
         console.log("💬 Processed chats:", chats);
 
@@ -160,10 +165,8 @@ export const useAuth = () => {
       const registerResponse = await createUser({ username, password });
       if (registerResponse.token && registerResponse.user) {
         const userID = registerResponse.user.userID;
-        // Optionally, retrieve complete user data:
         const userData = await fetchUserData(userID);
         setUser(userData);
-        // Temporarily, shawn 
         setError("");
         alert("Account created successfully!");
         return userData;
@@ -179,11 +182,5 @@ export const useAuth = () => {
     }
   };
 
-  return { 
-    loginUser, 
-    registerUser, 
-    refreshUserSession,
-    error, 
-    loading 
-  };
+  return { loginUser, registerUser, refreshUserSession, error, loading };
 };

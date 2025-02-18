@@ -1,38 +1,39 @@
 // hooks/useChat.tsx
 import { useState, useContext } from "react";
-import { startChat, retrieveChats, deleteChat, retrieveChatMessages } from "@/services/services";
+import { startChat, deleteChat, retrieveChats, retrieveChatMessages } from "@/services/services";
 import { UserConfigContext } from "@/config/UserConfig";
 
 export const useChat = () => {
   const { updateChats } = useContext(UserConfigContext)!;
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [chats,setChats] = useState([]);
-  // Helper: refresh chats data.
+  const [chats, setChats] = useState<any[]>([]);
+
+  // Common helper: no mapping of participants needed here.
+  const fetchAndProcessChats = async () => {
+    const chatsRaw = await retrieveChats();
+    const chats = await Promise.all(
+      (chatsRaw || []).map(async (chat: any) => {
+        const messages = await retrieveChatMessages(chat.chatID);
+        const mappedMessages = (messages || []).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        return {
+          ...chat,
+          createdAt: new Date(chat.createdAt),
+          updatedAt: new Date(chat.updatedAt),
+          messages: mappedMessages,
+        };
+      })
+    );
+    return chats;
+  };
+
   const refreshChats = async () => {
-    console.log("🔄 Starting refreshChats in useChats");
+    console.log("🔄 Starting refreshChats in useChat");
     try {
-      const chatsRaw = await retrieveChats();
-      console.log("📥 Retrieved raw chats:", chatsRaw);
-      
-      const chats = await Promise.all(
-        (chatsRaw || []).map(async (chat: any) => {
-          const chatId = chat.chatID;
-          const messages = await retrieveChatMessages(chatId);
-          console.log(`📨 Retrieved messages for chat ${chatId}:`, messages);
-          
-          const mappedMessages = (messages || []).map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          }));
-          return { 
-            ...chat, 
-            createdAt: new Date(chat.createdAt), 
-            updatedAt: new Date(chat.updatedAt), 
-            messages: mappedMessages 
-          };
-        })
-      );
+      const chats = await fetchAndProcessChats();
       console.log("✅ Updated chats state with:", chats);
       updateChats(chats);
       setChats(chats);
@@ -43,7 +44,6 @@ export const useChat = () => {
     }
   };
 
-  // Create (or start) a new chat.
   const createChat = async (recipientID: string) => {
     setLoading(true);
     try {
@@ -58,8 +58,6 @@ export const useChat = () => {
     }
   };
 
-  // Find an existing chat with a specific user.
-  // (This example uses axios directly since it wasn't wrapped in services.)
   const findChat = async (otherUserId: string) => {
     setLoading(true);
     try {
@@ -77,7 +75,6 @@ export const useChat = () => {
     }
   };
 
-  // Delete an entire chat.
   const deleteChatById = async (chatId: string) => {
     setLoading(true);
     try {
@@ -92,5 +89,5 @@ export const useChat = () => {
     }
   };
 
-  return { createChat, findChat, refreshChats, deleteChatById, error, loading,chats };
+  return { createChat, findChat, refreshChats, deleteChatById, error, loading, chats };
 };

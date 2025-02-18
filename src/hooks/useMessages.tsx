@@ -8,29 +8,31 @@ export const useMessages = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Helper: refresh chats data.
+  // Common helper: fetch and process chats.
+  const fetchAndProcessChats = async () => {
+    const chatsRaw = await retrieveChats();
+    const chats = await Promise.all(
+      (chatsRaw || []).map(async (chat: any) => {
+        const messages = await retrieveChatMessages(chat.chatID);
+        const mappedMessages = (messages || []).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        return {
+          ...chat,
+          createdAt: new Date(chat.createdAt),
+          updatedAt: new Date(chat.updatedAt),
+          messages: mappedMessages,
+        };
+      })
+    );
+    return chats;
+  };
+
   const refreshChats = async () => {
     console.log("🔄 Starting refreshChats in useMessages");
     try {
-      const chatsRaw = await retrieveChats();
-      console.log("📥 Retrieved raw chats:", chatsRaw);
-      
-      const chats = await Promise.all(
-        (chatsRaw || []).map(async (chat: any) => {
-          const messages = await retrieveChatMessages(chat.chatID);
-          console.log(`📨 Retrieved messages for chat ${chat.chatID}:`, messages);
-          
-          const mappedMessages = (messages || []).map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          }));
-          return { ...chat, 
-            createdAt: new Date(chat.createdAt), 
-            updatedAt: new Date(chat.updatedAt), 
-            messages: mappedMessages 
-          };
-        })
-      );
+      const chats = await fetchAndProcessChats();
       console.log("✅ Processed chats with messages:", chats);
       updateChats(chats);
     } catch (err: any) {
@@ -40,7 +42,6 @@ export const useMessages = () => {
     }
   };
 
-  // Send a message (auto-creates a chat if needed).
   const sendMsg = async (recipientID: string, text: string) => {
     console.log("📤 Attempting to send message to:", recipientID);
     setLoading(true);
@@ -58,7 +59,6 @@ export const useMessages = () => {
     }
   };
 
-  // Edit an existing message.
   const editMsg = async (chatId: string, messageId: string, newText: string) => {
     setLoading(true);
     try {
@@ -73,7 +73,6 @@ export const useMessages = () => {
     }
   };
 
-  // Delete a specific message.
   const deleteMsg = async (chatId: string, messageId: string) => {
     setLoading(true);
     try {
@@ -88,7 +87,6 @@ export const useMessages = () => {
     }
   };
 
-  // Retrieve messages for a specific chat (without updating global state).
   const getMessages = async (chatId: string) => {
     setLoading(true);
     try {

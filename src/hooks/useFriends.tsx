@@ -12,7 +12,7 @@ export const useFriends = () => {
   const { setUser } = useContext(UserConfigContext)!;
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-
+  const [friendState,setFriendState] = useState({friends:[],friendRequests:[],sentFriendRequests:[]})
   // Refresh friend data and update the global user config.
   const refreshFriends = async () => {
     try {
@@ -25,6 +25,7 @@ export const useFriends = () => {
         friends: friends || [],
         friendRequests: friendRequests || [],
       }));
+      setFriendState((prev)=>({...prev,friends:friends||[],friendRequests:friendRequests||[]}));
     } catch (err: any) {
       setError(err.message || "Error refreshing friend data");
       throw err;
@@ -82,5 +83,5 @@ export const useFriends = () => {
     }
   };
 
-  return { sendRequest, acceptRequest, deleteFriendRequest, refreshFriends, error, loading };
+  return { sendRequest, acceptRequest, deleteFriendRequest, refreshFriends, error, loading,friendState };
 };
