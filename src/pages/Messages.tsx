@@ -42,7 +42,7 @@ export const Messages = () => {
   useEffect(() => {
     const contactsMap = new Map<string, Contact>();
     // Process chats: always pick the other participant.
-    chats.forEach((chat) => {
+    chats?.forEach((chat) => {
       const otherParticipant = chat.participants.find(
         (p) => p.userID !== currentUserID
       );
@@ -55,7 +55,7 @@ export const Messages = () => {
       }
     });
     // Add friends that don't have an associated chat.
-    user.friends.forEach((friend: Friend) => {
+    user?.friends?.forEach((friend: Friend) => {
       if (!contactsMap.has(friend.userID)) {
         contactsMap.set(friend.userID, {
           id: friend.userID,
