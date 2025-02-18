@@ -7,6 +7,7 @@ import { Divider } from "@heroui/divider";
 import DefaultLayout from "@/layouts/default";
 import { UserConfigContext, Chat, Friend } from "@/config/UserConfig";
 import { useMessages } from "@/hooks/useMessages";
+import { useChat } from "@/hooks/useChats";
 
 interface Contact {
   id: string;
@@ -18,7 +19,7 @@ export const Messages = () => {
   const { user } = useContext(UserConfigContext)!;
   const currentUserID = user.userID;
   const { sendMsg, loading } = useMessages();
-
+  const {chats}= useChat();
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -28,7 +29,7 @@ export const Messages = () => {
     const contactsMap = new Map<string, Contact>();
 
     // Process chats (each chat always has 2 participants).
-    user.chats.forEach((chat) => {
+    chats.forEach((chat) => {
       // Always pick the other participant.
       const otherParticipant = chat.participants.find(
         (p) => p.userID !== currentUserID
@@ -58,7 +59,7 @@ export const Messages = () => {
   // Instead of storing currentChat in local state,
   // derive it directly from user.chats so it always reflects the latest state.
   const currentChat = selectedContact
-    ? user.chats.find((chat) =>
+    ? chats.find((chat) =>
         chat.participants.some((p) => p.userID === selectedContact.id)
       ) || null
     : null;

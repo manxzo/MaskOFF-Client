@@ -7,7 +7,7 @@ export const useChat = () => {
   const { updateChats } = useContext(UserConfigContext)!;
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-
+  const [chats,setChats] = useState([]);
   // Helper: refresh chats data.
   const refreshChats = async () => {
     console.log("🔄 Starting refreshChats in useChats");
@@ -35,6 +35,7 @@ export const useChat = () => {
       );
       console.log("✅ Updated chats state with:", chats);
       updateChats(chats);
+      setChats(chats);
     } catch (err: any) {
       console.error("❌ Error in refreshChats:", err);
       setError(err.message || "Error refreshing chats");
@@ -91,5 +92,5 @@ export const useChat = () => {
     }
   };
 
-  return { createChat, findChat, refreshChats, deleteChatById, error, loading };
+  return { createChat, findChat, refreshChats, deleteChatById, error, loading,chats };
 };
