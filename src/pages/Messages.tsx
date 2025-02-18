@@ -55,15 +55,13 @@ export const Messages = () => {
     return Array.from(contactsMap.values());
   }, [user, currentUserID]);
 
-  // Derive the current chat directly from the user state so it updates whenever user.chats changes.
-  const currentChat = useMemo(() => {
-    if (!selectedContact) return null;
-    return (
-      user.chats.find((chat) =>
-        chat.participants.find((p) => p.userID === selectedContact.id)
+  // Instead of storing currentChat in local state,
+  // derive it directly from user.chats so it always reflects the latest state.
+  const currentChat = selectedContact
+    ? user.chats.find((chat) =>
+        chat.participants.some((p) => p.userID === selectedContact.id)
       ) || null
-    );
-  }, [user.chats, selectedContact]);
+    : null;
 
   // Handle sending a message.
   const handleSendMessage = async () => {
