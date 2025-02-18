@@ -1,5 +1,5 @@
 // src/pages/Messages.tsx
-import React, { useState, useContext, useEffect, useMemo } from "react";
+import React, { useState, useContext, useMemo } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
@@ -20,7 +20,6 @@ export const Messages = () => {
   const { sendMsg, loading } = useMessages();
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [currentChat, setCurrentChat] = useState<Chat | null>(null);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
 
@@ -56,14 +55,15 @@ export const Messages = () => {
     return Array.from(contactsMap.values());
   }, [user, currentUserID]);
 
-  // Update the current chat when a contact is selected.
-  useEffect(() => {
-    if (selectedContact && selectedContact.chat) {
-      setCurrentChat(selectedContact.chat);
-    } else {
-      setCurrentChat(null);
-    }
-  }, [selectedContact]);
+  // Derive the current chat directly from the user state so it updates whenever user.chats changes.
+  const currentChat = useMemo(() => {
+    if (!selectedContact) return null;
+    return (
+      user.chats.find((chat) =>
+        chat.participants.find((p) => p.userID === selectedContact.id)
+      ) || null
+    );
+  }, [user.chats, selectedContact]);
 
   // Handle sending a message.
   const handleSendMessage = async () => {
@@ -143,7 +143,9 @@ export const Messages = () => {
                     <div key={msg.messageID} className="p-1 border rounded">
                       <div className="flex justify-between items-center">
                         <strong>
-                          {msg.sender === currentUserID ? "You" : selectedContact?.username}
+                          {msg.sender === currentUserID
+                            ? "You"
+                            : selectedContact?.username}
                         </strong>
                         <span className="text-xs text-gray-500">
                           {new Date(msg.timestamp).toLocaleDateString()}{" "}
