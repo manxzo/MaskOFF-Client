@@ -11,8 +11,11 @@ const useWebSocket = (userID: string | null) => {
   useEffect(() => {
     if (!userID) return;
 
-    // Connect to the WebSocket server (adjust URL/port as needed)
-    const socket = new WebSocket("ws://localhost:3000");
+    // Determine the protocol: use "wss" if the page is loaded via HTTPS; otherwise, use "ws".
+    // Use the current host so that it works on CodeSandbox or any public deployment.
+    const wsUrl = `ws:https://dkktf4-3000.csb.app`;
+    
+    const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
       console.log("WebSocket connected");
