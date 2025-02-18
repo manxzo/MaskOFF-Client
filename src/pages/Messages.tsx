@@ -1,71 +1,90 @@
 // src/pages/Messages.tsx
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useMemo } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import DefaultLayout from "@/layouts/default";
-import { UserConfigContext } from "@/config/UserConfig";
+import { UserConfigContext, Chat, Friend } from "@/config/UserConfig";
 import { useMessages } from "@/hooks/useMessages";
-import { retrieveAllUsers } from "@/services/services";
+
+interface Contact {
+  id: string;
+  username: string;
+  chat?: Chat;
+}
 
 export const Messages = () => {
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
+  const { user } = useContext(UserConfigContext)!;
+  const currentUserID = user.userID;
   const { sendMsg, loading } = useMessages();
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const { user: currentUser } = useContext(UserConfigContext) || {};
+
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [currentChat, setCurrentChat] = useState<Chat | null>(null);
+  const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const [currentChat, setCurrentChat] = useState({
-    chatID: "",
-    participants: [],
-    messages: [],
-    createdAt: null,
-    updatedAt: null,
-  });
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await retrieveAllUsers();
-        // Filter out the current user
-        const filteredUsers = res.filter(
-          (user: any) => user.userID !== currentUser?.userID
-        );
-        setAllUsers(filteredUsers);
-      } catch (err: any) {
-        setError(err.message || "Error retrieving users");
-      }
-    };
-    fetchUsers();
-  }, [currentUser]);
 
-  // Find the chat between the current user and the selected user.
-  useEffect(() => {
-    const chatLog = currentUser.chats.filter((chat) =>
-      chat?.participants?.some((userID) => userID === selectedUserId)
-    )[0];
-    if(chatLog?.participants?.length>1 && selectedUserId){
-    setCurrentChat(chatLog);
-    }
-  }, [selectedUserId]);
+  // Build a unified contact list from chats and friends.
+  const contacts: Contact[] = useMemo(() => {
+    const contactsMap = new Map<string, Contact>();
 
-  // Handle sending the message.
-  const handleSendMessage = async () => {
-    if (selectedUserId && message.trim()) {
-      try {
-        await sendMsg(selectedUserId, message);
-        setMessage("");
-        setError("");
-      } catch (err: any) {
-        // Ensure error is a string so React can render it.
-        setError(err.message || "Error sending message");
+    // Process chats (each chat always has 2 participants).
+    user.chats.forEach((chat) => {
+      // Always pick the other participant.
+      const otherParticipant = chat.participants.find(
+        (p) => p.userID !== currentUserID
+      );
+      if (otherParticipant) {
+        contactsMap.set(otherParticipant.userID, {
+          id: otherParticipant.userID,
+          username: otherParticipant.username,
+          chat,
+        });
       }
+    });
+
+    // Add friends that don't already have an associated chat.
+    user.friends.forEach((friend: Friend) => {
+      if (!contactsMap.has(friend.userID)) {
+        contactsMap.set(friend.userID, {
+          id: friend.userID,
+          username: friend.username,
+        });
+      }
+    });
+
+    return Array.from(contactsMap.values());
+  }, [user, currentUserID]);
+
+  // Update the current chat when a contact is selected.
+  useEffect(() => {
+    if (selectedContact && selectedContact.chat) {
+      setCurrentChat(selectedContact.chat);
     } else {
+      setCurrentChat(null);
+    }
+  }, [selectedContact]);
+
+  // Handle sending a message.
+  const handleSendMessage = async () => {
+    if (!selectedContact) {
+      setError("Select a contact to chat with.");
+      return;
+    }
+    if (!message.trim()) {
       setError("Type a message!");
+      return;
+    }
+    try {
+      await sendMsg(selectedContact.id, message);
+      setMessage("");
+      setError("");
+    } catch (err: any) {
+      setError(err.message || "Error sending message");
     }
   };
 
-  // Allow sending on Enter key press (without Shift).
+  // Allow sending the message on Enter key press (without Shift).
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -76,22 +95,30 @@ export const Messages = () => {
   return (
     <DefaultLayout>
       <div className="flex h-[calc(100vh-200px)] gap-4">
-        {/* Left Pane: User List */}
+        {/* Left Pane: Contacts List */}
         <Card className="w-1/4">
-          <CardHeader>Users</CardHeader>
+          <CardHeader>Contacts</CardHeader>
           <Divider />
           <CardBody>
             <div className="flex flex-col gap-2">
-              {allUsers.map((user) => (
-                <Button
-                  key={user.userID}
-                  color={selectedUserId === user.userID ? "primary" : "default"}
-                  variant={selectedUserId === user.userID ? "solid" : "light"}
-                  onPress={() => setSelectedUserId(user.userID)}
-                >
-                  {user.username}
-                </Button>
-              ))}
+              {contacts.length > 0 ? (
+                contacts.map((contact) => (
+                  <Button
+                    key={contact.id}
+                    color={
+                      selectedContact?.id === contact.id ? "primary" : "default"
+                    }
+                    variant={
+                      selectedContact?.id === contact.id ? "solid" : "light"
+                    }
+                    onPress={() => setSelectedContact(contact)}
+                  >
+                    {contact.username}
+                  </Button>
+                ))
+              ) : (
+                <p>No contacts available.</p>
+              )}
             </div>
           </CardBody>
         </Card>
@@ -99,10 +126,7 @@ export const Messages = () => {
         {/* Right Pane: Chat Window */}
         <Card className="flex-1 h-full">
           <CardHeader>
-            {selectedUserId
-              ? allUsers.find((user) => user.userID === selectedUserId)
-                  ?.username
-              : "Select a user"}
+            {selectedContact ? selectedContact.username : "Select a contact"}
           </CardHeader>
           <Divider />
           <CardBody className="flex flex-col h-full">
@@ -115,11 +139,11 @@ export const Messages = () => {
                       new Date(a.timestamp).getTime() -
                       new Date(b.timestamp).getTime()
                   )
-                  .map((msg: any) => (
+                  .map((msg) => (
                     <div key={msg.messageID} className="p-1 border rounded">
                       <div className="flex justify-between items-center">
                         <strong>
-                          {msg.sender === currentUser?.userID ? "You" : allUsers.find((user) => user.userID === selectedUserId).username}
+                          {msg.sender === currentUserID ? "You" : selectedContact?.username}
                         </strong>
                         <span className="text-xs text-gray-500">
                           {new Date(msg.timestamp).toLocaleDateString()}{" "}
@@ -141,12 +165,12 @@ export const Messages = () => {
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message here..."
-                disabled={!selectedUserId}
+                disabled={!selectedContact}
               />
               <Button
                 isLoading={loading}
                 onPress={handleSendMessage}
-                disabled={!selectedUserId || !message.trim()}
+                disabled={!selectedContact || !message.trim()}
               >
                 Send
               </Button>
@@ -154,7 +178,9 @@ export const Messages = () => {
           </CardBody>
         </Card>
       </div>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 mt-2">{error}</p>}
     </DefaultLayout>
   );
 };
+
+export default Messages;

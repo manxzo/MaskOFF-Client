@@ -28,7 +28,7 @@ export const useAuth = () => {
         const messages = await retrieveChatMessages(chatId);
         console.log(`📨 Retrieved messages for chat ${chatId}:`, messages);
         
-        const mappedParticipants = chat.participants.map((participant) => participant.userID);
+        const mappedParticipants = chat.participants.map((participant) => ({userID:participant.userID,username:participant.username}));
         const mappedMessages = (messages || []).map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp),
