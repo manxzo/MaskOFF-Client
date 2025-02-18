@@ -8,11 +8,14 @@ export interface Message {
   message: string; // This holds the message text.
   timestamp: Date;
 }
-
+export interface Participant{
+  userID:string;
+  username:string;
+}
 // Define the Chat interface matching server response keys.
 export interface Chat {
   chatID: string;
-  participants: string[];
+  participants: Participant[];
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
