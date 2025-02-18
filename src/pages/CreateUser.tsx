@@ -1,4 +1,3 @@
-// src/pages/CreateUser.tsx
 import React, { useState } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Button } from "@heroui/button";
@@ -16,7 +15,7 @@ export const CreateUser = () => {
     try {
       await registerUser(username, password);
     } catch (err) {
-      // error handled by hook
+      // Error handled by hook.
     }
   };
 
@@ -50,3 +49,5 @@ export const CreateUser = () => {
     </DefaultLayout>
   );
 };
+
+export default CreateUser;

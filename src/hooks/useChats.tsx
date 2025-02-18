@@ -1,5 +1,7 @@
-// hooks/useChat.tsx
-import { useState, useContext } from "react";
+// [Client: useChat.tsx]
+// This hook manages chat-related operations (create, delete, find, etc.).
+// It listens for the "refreshData" event to update its local chats.
+import { useState, useContext, useEffect } from "react";
 import { startChat, deleteChat, retrieveChats, retrieveChatMessages } from "@/services/services";
 import { UserConfigContext } from "@/config/UserConfig";
 
@@ -9,7 +11,7 @@ export const useChat = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [chats, setChats] = useState<any[]>([]);
 
-  // Common helper: no mapping of participants needed here.
+  // Helper: fetch and process chats (without extra participant mapping).
   const fetchAndProcessChats = async () => {
     const chatsRaw = await retrieveChats();
     const chats = await Promise.all(
@@ -31,18 +33,26 @@ export const useChat = () => {
   };
 
   const refreshChats = async () => {
-    console.log("🔄 Starting refreshChats in useChat");
     try {
       const chats = await fetchAndProcessChats();
-      console.log("✅ Updated chats state with:", chats);
       updateChats(chats);
       setChats(chats);
     } catch (err: any) {
-      console.error("❌ Error in refreshChats:", err);
       setError(err.message || "Error refreshing chats");
       throw err;
     }
   };
+
+  // Listen for "refreshData" events to refresh chats automatically.
+  useEffect(() => {
+    const handleRefresh = () => {
+      refreshChats();
+    };
+    window.addEventListener("refreshData", handleRefresh as EventListener);
+    return () => {
+      window.removeEventListener("refreshData", handleRefresh as EventListener);
+    };
+  }, []);
 
   const createChat = async (recipientID: string) => {
     setLoading(true);

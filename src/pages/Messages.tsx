@@ -15,23 +15,27 @@ interface Contact {
   chat?: Chat;
 }
 
-export const Messages = () => {
+const Messages = () => {
   const { user } = useContext(UserConfigContext)!;
+  // Use the chats directly from the global config
+  const globalChats: Chat[] = user.chats;
   const currentUserID = user.userID;
   const { sendMsg, loading } = useMessages();
-  const { chats } = useChat();
+  // Optionally, use useChat if it manages a local copy or refreshes chats.
+  const { chats: localChats } = useChat();
+  // We'll choose localChats if available; otherwise, fall back to globalChats.
+  const chats = localChats.length > 0 ? localChats : globalChats;
+
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  // Build a unified contact list based on the local chats and friends.
+  // Build a unified contacts list using chats (if a chat exists) and friends
   useEffect(() => {
     const contactsMap = new Map<string, Contact>();
-    console.log(chats)
-    // Process chats: each chat always has 2 participants.
+    // Process chats: for each chat, pick the other participant
     chats.forEach((chat) => {
-      // Always pick the other participant.
       const otherParticipant = chat.participants.find(
         (p) => p.userID !== currentUserID
       );
@@ -39,12 +43,11 @@ export const Messages = () => {
         contactsMap.set(otherParticipant.userID, {
           id: otherParticipant.userID,
           username: otherParticipant.username,
-          chat,
+          chat, // include the existing chat
         });
       }
     });
-
-    // Add friends that don't already have an associated chat.
+    // Now add friends that don't have an associated chat yet
     user.friends.forEach((friend: Friend) => {
       if (!contactsMap.has(friend.userID)) {
         contactsMap.set(friend.userID, {
@@ -53,18 +56,16 @@ export const Messages = () => {
         });
       }
     });
-
     setContacts(Array.from(contactsMap.values()));
   }, [chats, user.friends, currentUserID]);
 
-  // Derive the current chat directly from the local chats.
-  const currentChat = selectedContact
+  // Determine the current chat based on the selected contact.
+  const currentChat: Chat | null = selectedContact
     ? chats.find((chat) =>
         chat.participants.some((p) => p.userID === selectedContact.id)
       ) || null
     : null;
 
-  // Handle sending a message.
   const handleSendMessage = async () => {
     if (!selectedContact) {
       setError("Select a contact to chat with.");
@@ -83,7 +84,6 @@ export const Messages = () => {
     }
   };
 
-  // Allow sending the message on Enter key press (without Shift).
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -104,12 +104,8 @@ export const Messages = () => {
                 contacts.map((contact) => (
                   <Button
                     key={contact.id}
-                    color={
-                      selectedContact?.id === contact.id ? "primary" : "default"
-                    }
-                    variant={
-                      selectedContact?.id === contact.id ? "solid" : "light"
-                    }
+                    color={selectedContact?.id === contact.id ? "primary" : "default"}
+                    variant={selectedContact?.id === contact.id ? "solid" : "light"}
                     onPress={() => setSelectedContact(contact)}
                   >
                     {contact.username}
@@ -121,7 +117,6 @@ export const Messages = () => {
             </div>
           </CardBody>
         </Card>
-
         {/* Right Pane: Chat Window */}
         <Card className="flex-1 h-full">
           <CardHeader>
@@ -129,37 +124,38 @@ export const Messages = () => {
           </CardHeader>
           <Divider />
           <CardBody className="flex flex-col h-full">
-            {/* Chat messages display */}
             <div className="flex-1 flex flex-col gap-2 overflow-auto">
-              {currentChat && currentChat.messages.length > 0 ? (
-                [...currentChat.messages]
-                  .sort(
-                    (a, b) =>
-                      new Date(a.timestamp).getTime() -
-                      new Date(b.timestamp).getTime()
-                  )
-                  .map((msg) => (
-                    <div key={msg.messageID} className="p-1 border rounded">
-                      <div className="flex justify-between items-center">
-                        <strong>
-                          {msg.sender === currentUserID
-                            ? "You"
-                            : selectedContact?.username}
-                        </strong>
-                        <span className="text-xs text-gray-500">
-                          {new Date(msg.timestamp).toLocaleDateString()}{" "}
-                          {new Date(msg.timestamp).toLocaleTimeString()}
-                        </span>
+              {selectedContact ? (
+                currentChat && currentChat.messages.length > 0 ? (
+                  [...currentChat.messages]
+                    .sort(
+                      (a, b) =>
+                        new Date(a.timestamp).getTime() -
+                        new Date(b.timestamp).getTime()
+                    )
+                    .map((msg) => (
+                      <div key={msg.messageID} className="p-1 border rounded">
+                        <div className="flex justify-between items-center">
+                          <strong>
+                            {msg.sender === currentUserID ? "You" : selectedContact.username}
+                          </strong>
+                          <span className="text-xs text-gray-500">
+                            {new Date(msg.timestamp).toLocaleDateString()}{" "}
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <div>{msg.message}</div>
                       </div>
-                      <div>{msg.message}</div>
-                    </div>
-                  ))
+                    ))
+                ) : (
+                  <p className="text-gray-500">
+                    No conversation yet. Type a message to start chatting.
+                  </p>
+                )
               ) : (
-                <p>No messages</p>
+                <p>Select a contact to view messages.</p>
               )}
             </div>
-
-            {/* Message input area */}
             <div className="mt-4 flex gap-2">
               <Input
                 value={message}

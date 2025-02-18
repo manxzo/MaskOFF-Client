@@ -1,44 +1,35 @@
-// hooks/useWebSocket.tsx
-import { useState, useEffect, useContext } from "react";
-import { UserConfigContext } from "@/config/UserConfig";
-import { useChat } from "./useChats";
-import { useFriends } from "./useFriends";
+// [Client: useWebSocket.tsx]
+// This hook sets up the WebSocket connection. When the server sends an "UPDATE_DATA"
+// message (targeted to this user), the hook dispatches a custom event ("refreshData")
+// so that other hooks/components can refresh their data.
+
+import { useState, useEffect } from "react";
+
 const useWebSocket = (userID: string | null) => {
-  const userConfig = useContext(UserConfigContext);
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const {refreshChats} = useChat();
-  const {refreshFriends}=useFriends();
+
   useEffect(() => {
     if (!userID) return;
 
+    // Connect to the WebSocket server (adjust URL/port as needed)
     const socket = new WebSocket("ws://localhost:3000");
 
     socket.onopen = () => {
       console.log("WebSocket connected");
-      // Authenticate with the WebSocket server.
+      // Authenticate with the server by sending the user ID.
       socket.send(JSON.stringify({ type: "AUTH", userId: userID }));
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("WebSocket message received:", data);
-
-      // Make sure the context is available before updating state.
-      if (!userConfig) return;
-
-      // Handle different message types from the server.
-      switch (data.type) {
-        case "MESSAGE": {
-          refreshChats();
-          break;
+      try {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message received:", data);
+        // When an update is received, dispatch a custom event so that refresh functions run.
+        if (data.type === "UPDATE_DATA") {
+          window.dispatchEvent(new CustomEvent("refreshData", { detail: data }));
         }
-        case "FRIENDS":{
-          refreshFriends();
-          break;
-        }
-        default:
-          // Handle other message types if needed.
-          break;
+      } catch (err) {
+        console.error("Error processing WebSocket message:", err);
       }
     };
 
@@ -51,7 +42,7 @@ const useWebSocket = (userID: string | null) => {
     return () => {
       socket.close();
     };
-  }, [userID, userConfig]);
+  }, [userID]);
 
   return ws;
 };

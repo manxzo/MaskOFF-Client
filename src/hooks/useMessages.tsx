@@ -1,5 +1,7 @@
-// hooks/useMessages.tsx
-import { useState, useContext } from "react";
+// [Client: useMessages.tsx]
+// This hook handles messaging operations (send, edit, delete, get messages)
+// and refreshes chat data on updates. It also listens for "refreshData" events.
+import { useState, useContext, useEffect } from "react";
 import { sendMessage, editMessage, deleteMessage, retrieveChatMessages, retrieveChats } from "@/services/services";
 import { UserConfigContext } from "@/config/UserConfig";
 
@@ -8,7 +10,7 @@ export const useMessages = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Common helper: fetch and process chats.
+  // Helper: fetch and process chats.
   const fetchAndProcessChats = async () => {
     const chatsRaw = await retrieveChats();
     const chats = await Promise.all(
@@ -30,28 +32,33 @@ export const useMessages = () => {
   };
 
   const refreshChats = async () => {
-    console.log("🔄 Starting refreshChats in useMessages");
     try {
       const chats = await fetchAndProcessChats();
-      console.log("✅ Processed chats with messages:", chats);
       updateChats(chats);
     } catch (err: any) {
-      console.error("❌ Error in refreshChats:", err);
       setError(err.message || "Error refreshing chats");
       throw err;
     }
   };
 
+  // Listen for "refreshData" events.
+  useEffect(() => {
+    const handleRefresh = () => {
+      refreshChats();
+    };
+    window.addEventListener("refreshData", handleRefresh as EventListener);
+    return () => {
+      window.removeEventListener("refreshData", handleRefresh as EventListener);
+    };
+  }, []);
+
   const sendMsg = async (recipientID: string, text: string) => {
-    console.log("📤 Attempting to send message to:", recipientID);
     setLoading(true);
     try {
       const response = await sendMessage(recipientID, text);
-      console.log("📨 Send message response:", response);
       await refreshChats();
       return response;
     } catch (err: any) {
-      console.error("❌ Error sending message:", err);
       setError(err.message || "Error sending message");
       throw err;
     } finally {
