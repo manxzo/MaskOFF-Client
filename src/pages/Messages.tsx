@@ -28,7 +28,7 @@ export const Messages = () => {
       try {
         const res = await retrieveAllUsers();
         // Filter out the current user
-        const filteredUsers = res.filter(
+        const filteredUsers = res?.filter(
           (user: any) => user.userID !== currentUser?.userID
         );
         setAllUsers(filteredUsers);
