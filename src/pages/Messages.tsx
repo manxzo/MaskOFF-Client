@@ -8,6 +8,7 @@ import DefaultLayout from "@/layouts/default";
 import { UserConfigContext, Chat, Friend } from "@/config/UserConfig";
 import { useMessages } from "@/hooks/useMessages";
 import { useChat } from "@/hooks/useChats";
+import { useLocation } from "react-router-dom";
 
 interface Contact {
   id: string;
@@ -15,26 +16,32 @@ interface Contact {
   chat?: Chat;
 }
 
-const Messages = () => {
+export const Messages = () => {
   const { user } = useContext(UserConfigContext)!;
-  // Use the chats directly from the global config
-  const globalChats: Chat[] = user.chats;
   const currentUserID = user.userID;
   const { sendMsg, loading } = useMessages();
-  // Optionally, use useChat if it manages a local copy or refreshes chats.
   const { chats: localChats } = useChat();
-  // We'll choose localChats if available; otherwise, fall back to globalChats.
-  const chats = localChats.length > 0 ? localChats : globalChats;
-
+  // Use localChats if available, otherwise fall back to global user.chats.
+  const chats: Chat[] =
+    localChats.length > 0 ? localChats : user.chats;
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  // Build a unified contacts list using chats (if a chat exists) and friends
+  const location = useLocation();
+
+  // On mount, check if a preselectedUser was passed in navigation state.
+  useEffect(() => {
+    if (location.state && location.state.preselectedUser) {
+      setSelectedContact(location.state.preselectedUser);
+    }
+  }, [location]);
+
+  // Build unified contacts list based on chats and friends.
   useEffect(() => {
     const contactsMap = new Map<string, Contact>();
-    // Process chats: for each chat, pick the other participant
+    // Process chats: always pick the other participant.
     chats.forEach((chat) => {
       const otherParticipant = chat.participants.find(
         (p) => p.userID !== currentUserID
@@ -43,11 +50,11 @@ const Messages = () => {
         contactsMap.set(otherParticipant.userID, {
           id: otherParticipant.userID,
           username: otherParticipant.username,
-          chat, // include the existing chat
+          chat,
         });
       }
     });
-    // Now add friends that don't have an associated chat yet
+    // Add friends that don't have an associated chat.
     user.friends.forEach((friend: Friend) => {
       if (!contactsMap.has(friend.userID)) {
         contactsMap.set(friend.userID, {
@@ -59,7 +66,7 @@ const Messages = () => {
     setContacts(Array.from(contactsMap.values()));
   }, [chats, user.friends, currentUserID]);
 
-  // Determine the current chat based on the selected contact.
+  // Derive the current chat based on the selected contact.
   const currentChat: Chat | null = selectedContact
     ? chats.find((chat) =>
         chat.participants.some((p) => p.userID === selectedContact.id)
@@ -104,8 +111,12 @@ const Messages = () => {
                 contacts.map((contact) => (
                   <Button
                     key={contact.id}
-                    color={selectedContact?.id === contact.id ? "primary" : "default"}
-                    variant={selectedContact?.id === contact.id ? "solid" : "light"}
+                    color={
+                      selectedContact?.id === contact.id ? "primary" : "default"
+                    }
+                    variant={
+                      selectedContact?.id === contact.id ? "solid" : "light"
+                    }
                     onPress={() => setSelectedContact(contact)}
                   >
                     {contact.username}
@@ -137,7 +148,9 @@ const Messages = () => {
                       <div key={msg.messageID} className="p-1 border rounded">
                         <div className="flex justify-between items-center">
                           <strong>
-                            {msg.sender === currentUserID ? "You" : selectedContact.username}
+                            {msg.sender === currentUserID
+                              ? "You"
+                              : selectedContact.username}
                           </strong>
                           <span className="text-xs text-gray-500">
                             {new Date(msg.timestamp).toLocaleDateString()}{" "}
