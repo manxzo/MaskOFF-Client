@@ -19,7 +19,7 @@ export interface Chat {
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
-}
+}   
 
 // Define the Friend interface matching server response keys.
 export interface Friend {
