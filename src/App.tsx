@@ -17,16 +17,13 @@ const App = () => {
   const { refreshUserSession } = useAuth();
 
   useEffect(() => {
-    console.log("🔄 App mounted - checking session");
+    console.log("App mounted - checking session");
     const initializeSession = async () => {
       try {
         const restoredSession = await refreshUserSession();
-        console.log(
-          "📥 Session restoration result:",
-          restoredSession ? "Success" : "No session"
-        );
+        console.log("Session restoration result:", restoredSession ? "Success" : "No session");
       } catch (err) {
-        console.error("❌ Error initializing session:", err);
+        console.error("Error initializing session:", err);
       }
     };
 

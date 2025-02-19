@@ -56,9 +56,9 @@ export const useAuth = () => {
   };
 
   const refreshChats = async (): Promise<any[]> => {
-    console.log("🔄 Starting refreshChats in useAuth");
+    console.log("Starting refreshChats in useAuth");
     const chats = await fetchAndProcessChats(true);
-    console.log("✅ Processed chats with messages:", chats);
+    console.log("Processed chats with messages:", chats);
     return chats;
   };
 
@@ -96,7 +96,7 @@ export const useAuth = () => {
   }, [setUser]);
 
   const refreshUserSession = async () => {
-    console.log("🔄 Checking stored session on page refresh");
+    console.log("Checking stored session on page refresh");
     const token = localStorage.getItem("token");
     if (token) {
       try {
