@@ -12,8 +12,9 @@ const useWebSocket = (userID: string | null) => {
     if (!userID) return;
 
     // Determine the protocol: use "wss" if the page is loaded via HTTPS; otherwise, use "ws".
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     // Use the current host so that it works on CodeSandbox or any public deployment.
-    const wsUrl = `ws:https://dkktf4-3000.csb.app`;
+    const wsUrl = `${wsProtocol}://${window.location.host}`;
     
     const socket = new WebSocket(wsUrl);
 
