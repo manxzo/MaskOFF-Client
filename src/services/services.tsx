@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const SERVER_URL = "http://localhost:3000/api/";
+const SERVER_URL = "https://dkktf4-3000.csb.app/api/";
 
 // Helper function to get token from localStorage
 export const getAuthToken = (): string | null => localStorage.getItem("token");

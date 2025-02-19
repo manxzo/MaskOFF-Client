@@ -1,9 +1,8 @@
 // src/App.tsx
 
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-
+import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 // Import your pages (ensure you create/update these pages using @heroui/react components)
 import Home from "./pages/Home";
@@ -22,7 +21,10 @@ const App = () => {
     const initializeSession = async () => {
       try {
         const restoredSession = await refreshUserSession();
-        console.log("📥 Session restoration result:", restoredSession ? "Success" : "No session");
+        console.log(
+          "📥 Session restoration result:",
+          restoredSession ? "Success" : "No session"
+        );
       } catch (err) {
         console.error("❌ Error initializing session:", err);
       }
@@ -32,18 +34,18 @@ const App = () => {
   }, []);
 
   return (
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" />} />
-        <Route element={<Home />} path="/home" />
-        <Route element={<Login />} path="/login" />
-        <Route element={<CreateUser />} path="/newuser" />
-        <Route element={<Dashboard />} path="/dashboard" />
-        <Route element={<FindUsers />} path="/find-users" />
-        <Route element={<Friends />} path="/friends" />
-        <Route element={<Messages />} path="/messages" />
-        {/* You can add additional routes as needed */}
-      </Routes>
+    <Routes>
+      <Route path="/" element={<Navigate to="/home" />} />
+      <Route element={<Home />} path="/home" />
+      <Route element={<Login />} path="/login" />
+      <Route element={<CreateUser />} path="/newuser" />
+      <Route element={<Dashboard />} path="/dashboard" />
+      <Route element={<FindUsers />} path="/find-users" />
+      <Route element={<Friends />} path="/friends" />
+      <Route element={<Messages />} path="/messages" />
+      {/* You can add additional routes as needed */}
+    </Routes>
   );
-}
+};
 
 export default App;

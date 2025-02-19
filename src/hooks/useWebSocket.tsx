@@ -1,88 +1,39 @@
-// hooks/useWebSocket.tsx
-import { useState, useEffect, useContext } from "react";
-import { UserConfigContext } from "@/config/UserConfig";
+// [Client: useWebSocket.tsx]
+// This hook sets up the WebSocket connection. When the server sends an "UPDATE_DATA"
+// message (targeted to this user), the hook dispatches a custom event ("refreshData")
+// so that other hooks/components can refresh their data.
+
+import { useState, useEffect } from "react";
 
 const useWebSocket = (userID: string | null) => {
-  const userConfig = useContext(UserConfigContext);
   const [ws, setWs] = useState<WebSocket | null>(null);
 
   useEffect(() => {
     if (!userID) return;
 
-    const socket = new WebSocket("ws://localhost:3000");
+    // Determine the protocol: use "wss" if the page is loaded via HTTPS; otherwise, use "ws".
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    // Use the current host so that it works on CodeSandbox or any public deployment.
+    const wsUrl = `${wsProtocol}://${window.location.host}`;
+    
+    const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
       console.log("WebSocket connected");
-      // Authenticate with the WebSocket server.
+      // Authenticate with the server by sending the user ID.
       socket.send(JSON.stringify({ type: "AUTH", userId: userID }));
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("WebSocket message received:", data);
-
-      // Make sure the context is available before updating state.
-      if (!userConfig) return;
-
-      // Handle different message types from the server.
-      switch (data.type) {
-        case "NEW_MESSAGE": {
-          // Create a new message object.
-          const newMessage={
-            messageID: data.messageID || "", // assuming server provides a messageID
-            sender: data.sender,
-            recipient: userID, // adjust logic if needed
-            message: data.text,
-            timestamp: new Date(), // or use data.timestamp if provided
-          };
-
-          // Update the corresponding chat with the new message.
-          const updatedChats = userConfig.user.chats.map((chat) => {
-            if (chat.chatID === data.chatID) {
-              return { ...chat, messages: [...chat.messages, newMessage] };
-            }
-            return chat;
-          });
-
-          userConfig.updateChats(updatedChats);
-          break;
+      try {
+        const data = JSON.parse(event.data);
+        console.log("WebSocket message received:", data);
+        // When an update is received, dispatch a custom event so that refresh functions run.
+        if (data.type === "UPDATE_DATA") {
+          window.dispatchEvent(new CustomEvent("refreshData", { detail: data }));
         }
-        case "DELETE_MESSAGE": {
-          const updatedChats = userConfig.user.chats.map((chat) => {
-            if (chat.chatID === data.chatID) {
-              return {
-                ...chat,
-                messages: chat.messages.filter(
-                  (msg) => msg.messageID !== data.messageID
-                ),
-              };
-            }
-            return chat;
-          });
-          userConfig.updateChats(updatedChats);
-          break;
-        }
-        case "EDIT_MESSAGE": {
-          const updatedChats = userConfig.user.chats.map((chat) => {
-            if (chat.chatID === data.chatID) {
-              return {
-                ...chat,
-                messages: chat.messages.map((msg) => {
-                  if (msg.messageID === data.messageID) {
-                    return { ...msg, message: data.newText };
-                  }
-                  return msg;
-                }),
-              };
-            }
-            return chat;
-          });
-          userConfig.updateChats(updatedChats);
-          break;
-        }
-        default:
-          // Handle other message types if needed.
-          break;
+      } catch (err) {
+        console.error("Error processing WebSocket message:", err);
       }
     };
 
@@ -95,7 +46,7 @@ const useWebSocket = (userID: string | null) => {
     return () => {
       socket.close();
     };
-  }, [userID, userConfig]);
+  }, [userID]);
 
   return ws;
 };

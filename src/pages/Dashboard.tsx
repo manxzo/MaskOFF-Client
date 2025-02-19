@@ -1,12 +1,18 @@
-// src/pages/Dashboard.tsx
-import  { useContext } from "react";
+import { useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { UserConfigContext } from "@/config/UserConfig";
 import { Feed } from "@/components/Feed";
+import useWebSocket from "@/hooks/useWebSocket"; // Import the WS hook
+
 export const Dashboard = () => {
   const { user } = useContext(UserConfigContext)!;
+
+  // If the user is logged in (has a userID), set up the WebSocket connection.
+  // This ensures that the WS connection is active in a top-level page.
+  useWebSocket(user.userID);
+
   return (
     <DefaultLayout>
       <div className="p-8 text-center">
@@ -30,3 +36,5 @@ export const Dashboard = () => {
     </DefaultLayout>
   );
 };
+
+export default Dashboard;

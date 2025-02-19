@@ -1,28 +1,31 @@
 // src/pages/FindUsers.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Card } from "@heroui/card";
 import { retrieveAllUsers } from "@/services/services";
-import { useContext } from "react";
 import { UserConfigContext } from "@/config/UserConfig";
 import { Button } from "@heroui/button";
 import { HeartFilledIcon } from "@/components/icons";
 import { useFriends } from "@/hooks/useFriends";
+import { useNavigate } from "react-router-dom";
 
 export const FindUsers = () => {
   const [allUsers, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const context = useContext(UserConfigContext);
-  const {user:currentUser} = context;
-  const {sendRequest} = useFriends();
+  const { user: currentUser } = useContext(UserConfigContext)!;
+  const { sendRequest } = useFriends();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
         const res = await retrieveAllUsers();
-        const allUsers = res.filter((user)=>user.userID!==currentUser?.userID)
-        setUsers(allUsers);
+        const filteredUsers = res.filter(
+          (user) => user.userID !== currentUser?.userID
+        );
+        setUsers(filteredUsers);
       } catch (err: any) {
         setError(err.message || "Error retrieving users");
       } finally {
@@ -30,7 +33,7 @@ export const FindUsers = () => {
       }
     };
     fetchUsers();
-  }, []);
+  }, [currentUser]);
 
   return (
     <DefaultLayout>
@@ -42,7 +45,30 @@ export const FindUsers = () => {
           {allUsers.map((user) => (
             <Card key={user.userID} className="p-4">
               <h1>{user.username}</h1>
-              <Button isIconOnly color="danger" onPress={()=>sendRequest(user.userID)}><HeartFilledIcon/></Button>
+              <div className="flex space-x-2">
+                <Button
+                  isIconOnly
+                  color="danger"
+                  onPress={() => sendRequest(user.userID)}
+                >
+                  <HeartFilledIcon />
+                </Button>
+                {/* New Message button that navigates to /messages with preselectedUser in state */}
+                <Button
+                  onPress={() =>
+                    navigate("/messages", {
+                      state: {
+                        preselectedUser: {
+                          id: user.userID,
+                          username: user.username,
+                        },
+                      },
+                    })
+                  }
+                >
+                  Message
+                </Button>
+              </div>
             </Card>
           ))}
         </div>
@@ -50,3 +76,5 @@ export const FindUsers = () => {
     </DefaultLayout>
   );
 };
+
+export default FindUsers;

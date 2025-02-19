@@ -1,49 +1,59 @@
-// hooks/useChat.tsx
-import { useState, useContext } from "react";
-import { startChat, retrieveChats, deleteChat, retrieveChatMessages } from "@/services/services";
+// [Client: useChat.tsx]
+// This hook manages chat-related operations (create, delete, find, etc.).
+// It listens for the "refreshData" event to update its local chats.
+import { useState, useContext, useEffect } from "react";
+import { startChat, deleteChat, retrieveChats, retrieveChatMessages } from "@/services/services";
 import { UserConfigContext } from "@/config/UserConfig";
 
 export const useChat = () => {
   const { updateChats } = useContext(UserConfigContext)!;
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [chats,setChats] = useState([]);
-  // Helper: refresh chats data.
+  const [chats, setChats] = useState<any[]>([]);
+
+  // Helper: fetch and process chats (without extra participant mapping).
+  const fetchAndProcessChats = async () => {
+    const chatsRaw = await retrieveChats();
+    const chats = await Promise.all(
+      (chatsRaw || []).map(async (chat: any) => {
+        const messages = await retrieveChatMessages(chat.chatID);
+        const mappedMessages = (messages || []).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        return {
+          ...chat,
+          createdAt: new Date(chat.createdAt),
+          updatedAt: new Date(chat.updatedAt),
+          messages: mappedMessages,
+        };
+      })
+    );
+    return chats;
+  };
+
   const refreshChats = async () => {
-    console.log("🔄 Starting refreshChats in useChats");
     try {
-      const chatsRaw = await retrieveChats();
-      console.log("📥 Retrieved raw chats:", chatsRaw);
-      
-      const chats = await Promise.all(
-        (chatsRaw || []).map(async (chat: any) => {
-          const chatId = chat.chatID;
-          const messages = await retrieveChatMessages(chatId);
-          console.log(`📨 Retrieved messages for chat ${chatId}:`, messages);
-          
-          const mappedMessages = (messages || []).map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          }));
-          return { 
-            ...chat, 
-            createdAt: new Date(chat.createdAt), 
-            updatedAt: new Date(chat.updatedAt), 
-            messages: mappedMessages 
-          };
-        })
-      );
-      console.log("✅ Updated chats state with:", chats);
+      const chats = await fetchAndProcessChats();
       updateChats(chats);
       setChats(chats);
     } catch (err: any) {
-      console.error("❌ Error in refreshChats:", err);
       setError(err.message || "Error refreshing chats");
       throw err;
     }
   };
 
-  // Create (or start) a new chat.
+  // Listen for "refreshData" events to refresh chats automatically.
+  useEffect(() => {
+    const handleRefresh = () => {
+      refreshChats();
+    };
+    window.addEventListener("refreshData", handleRefresh as EventListener);
+    return () => {
+      window.removeEventListener("refreshData", handleRefresh as EventListener);
+    };
+  }, []);
+
   const createChat = async (recipientID: string) => {
     setLoading(true);
     try {
@@ -58,8 +68,6 @@ export const useChat = () => {
     }
   };
 
-  // Find an existing chat with a specific user.
-  // (This example uses axios directly since it wasn't wrapped in services.)
   const findChat = async (otherUserId: string) => {
     setLoading(true);
     try {
@@ -77,7 +85,6 @@ export const useChat = () => {
     }
   };
 
-  // Delete an entire chat.
   const deleteChatById = async (chatId: string) => {
     setLoading(true);
     try {
@@ -92,5 +99,5 @@ export const useChat = () => {
     }
   };
 
-  return { createChat, findChat, refreshChats, deleteChatById, error, loading,chats };
+  return { createChat, findChat, refreshChats, deleteChatById, error, loading, chats };
 };

@@ -1,4 +1,3 @@
-// src/pages/Login.tsx
 import React, { useState } from "react";
 import DefaultLayout from "@/layouts/default";
 import { Button } from "@heroui/button";
@@ -17,14 +16,12 @@ export const Login = () => {
     e.preventDefault();
     try {
       await loginUser(username, password);
-      //show success message, use a nicer alert from heroui in further upgrades
-      alert('Login successful');
-      //clear form fields in case navigation has issues
-      setUsername('');
-      setPassword('');
-      navigate('/dashboard');
+      alert("Login successful");
+      setUsername("");
+      setPassword("");
+      navigate("/dashboard");
     } catch (err) {
-      // error handled by hook
+      // Error handled by hook
     }
   };
 
@@ -58,3 +55,5 @@ export const Login = () => {
     </DefaultLayout>
   );
 };
+
+export default Login;

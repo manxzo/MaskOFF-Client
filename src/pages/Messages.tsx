@@ -1,5 +1,5 @@
 // src/pages/Messages.tsx
-import React, { useState, useContext, useMemo } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody, CardHeader } from "@heroui/card";
@@ -8,6 +8,7 @@ import DefaultLayout from "@/layouts/default";
 import { UserConfigContext, Chat, Friend } from "@/config/UserConfig";
 import { useMessages } from "@/hooks/useMessages";
 import { useChat } from "@/hooks/useChats";
+import { useLocation } from "react-router-dom";
 
 interface Contact {
   id: string;
@@ -19,18 +20,29 @@ export const Messages = () => {
   const { user } = useContext(UserConfigContext)!;
   const currentUserID = user.userID;
   const { sendMsg, loading } = useMessages();
-  const {chats}= useChat();
+  const { chats: localChats } = useChat();
+  // Use localChats if available, otherwise fall back to global user.chats.
+  const chats: Chat[] =
+    localChats.length > 0 ? localChats : user.chats;
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  // Build a unified contact list from chats and friends.
-  const contacts: Contact[] = useMemo(() => {
-    const contactsMap = new Map<string, Contact>();
+  const location = useLocation();
 
-    // Process chats (each chat always has 2 participants).
-    chats.forEach((chat) => {
-      // Always pick the other participant.
+  // On mount, check if a preselectedUser was passed in navigation state.
+  useEffect(() => {
+    if (location.state && location.state.preselectedUser) {
+      setSelectedContact(location.state.preselectedUser);
+    }
+  }, [location]);
+
+  // Build unified contacts list based on chats and friends.
+  useEffect(() => {
+    const contactsMap = new Map<string, Contact>();
+    // Process chats: always pick the other participant.
+    chats?.forEach((chat) => {
       const otherParticipant = chat.participants.find(
         (p) => p.userID !== currentUserID
       );
@@ -42,9 +54,8 @@ export const Messages = () => {
         });
       }
     });
-
-    // Add friends that don't already have an associated chat.
-    user.friends.forEach((friend: Friend) => {
+    // Add friends that don't have an associated chat.
+    user?.friends?.forEach((friend: Friend) => {
       if (!contactsMap.has(friend.userID)) {
         contactsMap.set(friend.userID, {
           id: friend.userID,
@@ -52,19 +63,16 @@ export const Messages = () => {
         });
       }
     });
+    setContacts(Array.from(contactsMap.values()));
+  }, [chats, user.friends, currentUserID]);
 
-    return Array.from(contactsMap.values());
-  }, [user, currentUserID]);
-
-  // Instead of storing currentChat in local state,
-  // derive it directly from user.chats so it always reflects the latest state.
-  const currentChat = selectedContact
+  // Derive the current chat based on the selected contact.
+  const currentChat: Chat | null = selectedContact
     ? chats.find((chat) =>
         chat.participants.some((p) => p.userID === selectedContact.id)
       ) || null
     : null;
 
-  // Handle sending a message.
   const handleSendMessage = async () => {
     if (!selectedContact) {
       setError("Select a contact to chat with.");
@@ -83,7 +91,6 @@ export const Messages = () => {
     }
   };
 
-  // Allow sending the message on Enter key press (without Shift).
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -121,7 +128,6 @@ export const Messages = () => {
             </div>
           </CardBody>
         </Card>
-
         {/* Right Pane: Chat Window */}
         <Card className="flex-1 h-full">
           <CardHeader>
@@ -129,37 +135,40 @@ export const Messages = () => {
           </CardHeader>
           <Divider />
           <CardBody className="flex flex-col h-full">
-            {/* Chat messages display */}
             <div className="flex-1 flex flex-col gap-2 overflow-auto">
-              {currentChat && currentChat.messages.length > 0 ? (
-                [...currentChat.messages]
-                  .sort(
-                    (a, b) =>
-                      new Date(a.timestamp).getTime() -
-                      new Date(b.timestamp).getTime()
-                  )
-                  .map((msg) => (
-                    <div key={msg.messageID} className="p-1 border rounded">
-                      <div className="flex justify-between items-center">
-                        <strong>
-                          {msg.sender === currentUserID
-                            ? "You"
-                            : selectedContact?.username}
-                        </strong>
-                        <span className="text-xs text-gray-500">
-                          {new Date(msg.timestamp).toLocaleDateString()}{" "}
-                          {new Date(msg.timestamp).toLocaleTimeString()}
-                        </span>
+              {selectedContact ? (
+                currentChat && currentChat.messages.length > 0 ? (
+                  [...currentChat.messages]
+                    .sort(
+                      (a, b) =>
+                        new Date(a.timestamp).getTime() -
+                        new Date(b.timestamp).getTime()
+                    )
+                    .map((msg) => (
+                      <div key={msg.messageID} className="p-1 border rounded">
+                        <div className="flex justify-between items-center">
+                          <strong>
+                            {msg.sender === currentUserID
+                              ? "You"
+                              : selectedContact.username}
+                          </strong>
+                          <span className="text-xs text-gray-500">
+                            {new Date(msg.timestamp).toLocaleDateString()}{" "}
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <div>{msg.message}</div>
                       </div>
-                      <div>{msg.message}</div>
-                    </div>
-                  ))
+                    ))
+                ) : (
+                  <p className="text-gray-500">
+                    No conversation yet. Type a message to start chatting.
+                  </p>
+                )
               ) : (
-                <p>No messages</p>
+                <p>Select a contact to view messages.</p>
               )}
             </div>
-
-            {/* Message input area */}
             <div className="mt-4 flex gap-2">
               <Input
                 value={message}
