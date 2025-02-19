@@ -153,3 +153,88 @@ export const deleteChat = async (chatId: string): Promise<any> => {
   });
   return response.data;
 };
+
+// Post and Introduction Types
+export interface Post {
+  postID: string;
+  title: string;
+  content: string;
+  author: {
+    username: string;
+    userID: string;
+  };
+  postType: "community" | "job";
+  createdAt: Date;
+}
+
+export interface Introduction {
+  introID: string;
+  content: string;
+  createdAt: Date;
+}
+
+// Posts API calls
+export const createPost = async (title: string, content: string, postType: "community" | "job") => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("No authentication token");
+
+    const response = await axios.post(
+      `${SERVER_URL}posts`,
+      { title, content, postType },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Create post error:", error);
+    throw new Error(error.response?.data?.error || "Failed to create post");
+  }
+};
+
+export const getPosts = async () => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("No authentication token");
+
+    const response = await axios.get(`${SERVER_URL}posts`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Get posts error:", error);
+    throw new Error(error.response?.data?.error || "Failed to fetch posts");
+  }
+};
+
+// Introductions API calls
+export const createIntroduction = async (content: string) => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("No authentication token");
+
+    const response = await axios.post(
+      `${SERVER_URL}introduction`,
+      { content },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Create introduction error:", error);
+    throw new Error(error.response?.data?.error || "Failed to create introduction");
+  }
+};
+
+export const getIntroductions = async () => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("No authentication token");
+
+    const response = await axios.get(`${SERVER_URL}introductions`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Get introductions error:", error);
+    throw new Error(error.response?.data?.error || "Failed to fetch introductions");
+  }
+};

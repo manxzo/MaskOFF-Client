@@ -4,7 +4,7 @@ import DefaultLayout from "@/layouts/default";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { UserConfigContext } from "@/config/UserConfig";
-
+import { Feed } from "@/components/Feed";
 export const Dashboard = () => {
   const { user } = useContext(UserConfigContext)!;
   return (
@@ -23,6 +23,9 @@ export const Dashboard = () => {
             Messages
           </Button>
         </div>
+      </div>
+      <div>
+      <Feed />
       </div>
     </DefaultLayout>
   );
