@@ -169,7 +169,8 @@ export const useAuth = () => {
       if (registerResponse.token && registerResponse.user) {
         const userID = registerResponse.user.userID;
         const userData = await fetchUserData(userID);
-        setUser(userData);
+        setUser(registerResponse.user);
+        await refreshUserSession();
         setError("");
         alert("Account created successfully!");
         return userData;

@@ -4,16 +4,19 @@ import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "@heroui/link";
+import { useNavigate } from "react-router-dom";
 
 export const CreateUser = () => {
   const { registerUser, error, loading } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await registerUser(username, password);
+      navigate('/dashboard');
     } catch (err) {
       // Error handled by hook.
     }
