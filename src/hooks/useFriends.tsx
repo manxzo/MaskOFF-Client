@@ -18,11 +18,6 @@ export const useFriends = () => {
   // Local state for error, loading, and friend data.
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [friendState, setFriendState] = useState({
-    friends: [],
-    friendRequests: [],
-    sentFriendRequests: [],
-  });
 
   // Helper: Refresh friend data by retrieving friend requests and friend list.
   // Updates both the global user config and the local friendState.
@@ -34,12 +29,6 @@ export const useFriends = () => {
       ]);
       // Update global user config.
       setUser((prev) => ({
-        ...prev,
-        friends: friends || [],
-        friendRequests: friendRequests || [],
-      }));
-      // Update local friend state.
-      setFriendState((prev) => ({
         ...prev,
         friends: friends || [],
         friendRequests: friendRequests || [],
@@ -126,6 +115,5 @@ export const useFriends = () => {
     refreshFriends,
     error,
     loading,
-    friendState,
   };
 };
