@@ -44,7 +44,7 @@ export const PostInput = ({ type, onSubmit }: PostInputProps) => {
       <CardBody>
         <div className="flex gap-3">
           <Avatar
-            src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`}
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`}
             className="h-10 w-10"
           />
           <div className="w-full">
