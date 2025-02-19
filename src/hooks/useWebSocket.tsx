@@ -12,11 +12,12 @@ const useWebSocket = (userID: string | null) => {
     if (!userID) return;
 
     // Determine the protocol: use "wss" if the page is loaded via HTTPS; otherwise, use "ws".
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    // Use the current host so that it works on CodeSandbox or any public deployment.
-    const wsUrl = `${wsProtocol}://${window.location.host}`;
     
-    const socket = new WebSocket(wsUrl);
+   // Instead of dynamically constructing using window.location.protocol,
+// directly use the secure URL:
+const wsUrl = "wss://p2qcss-3000.csb.app";
+const socket = new WebSocket(wsUrl);
+
 
     socket.onopen = () => {
       console.log("WebSocket connected");
@@ -44,8 +45,12 @@ const useWebSocket = (userID: string | null) => {
     setWs(socket);
 
     return () => {
-      socket.close();
+      // Only close if already open
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
     };
+    
   }, [userID]);
 
   return ws;
