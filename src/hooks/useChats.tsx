@@ -2,7 +2,12 @@
 // This hook manages chat-related operations (create, delete, find, etc.).
 // It listens for the "refreshData" event to update its local chats.
 import { useState, useContext, useEffect } from "react";
-import { startChat, deleteChat, retrieveChats, retrieveChatMessages } from "@/services/services";
+import {
+  startChat,
+  deleteChat,
+  retrieveChats,
+  retrieveChatMessages,
+} from "@/services/services";
 import { UserConfigContext } from "@/config/UserConfig";
 
 export const useChat = () => {
@@ -10,7 +15,7 @@ export const useChat = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [chats, setChats] = useState<any[]>([]);
-
+  const network = import.meta.env.VITE_NETWORK_API_URL;
   // Helper: fetch and process chats (without extra participant mapping).
   const fetchAndProcessChats = async () => {
     const chatsRaw = await retrieveChats();
@@ -73,9 +78,12 @@ export const useChat = () => {
     try {
       const token = localStorage.getItem("token");
       const axios = (await import("axios")).default;
-      const response = await axios.get(`http://localhost:3000/api/chat/${otherUserId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `http://${network}/api/chat/${otherUserId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       return response.data;
     } catch (err: any) {
       setError(err.message || "Error finding chat");
@@ -99,5 +107,13 @@ export const useChat = () => {
     }
   };
 
-  return { createChat, findChat, refreshChats, deleteChatById, error, loading, chats };
+  return {
+    createChat,
+    findChat,
+    refreshChats,
+    deleteChatById,
+    error,
+    loading,
+    chats,
+  };
 };

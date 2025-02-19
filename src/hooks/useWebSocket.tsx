@@ -12,12 +12,12 @@ const useWebSocket = (userID: string | null) => {
     if (!userID) return;
 
     // Determine the protocol: use "wss" if the page is loaded via HTTPS; otherwise, use "ws".
-    
-   // Instead of dynamically constructing using window.location.protocol,
-// directly use the secure URL:
-const wsUrl = "wss://p2qcss-3000.csb.app";
-const socket = new WebSocket(wsUrl);
 
+    // Instead of dynamically constructing using window.location.protocol,
+    // directly use the secure URL:
+    const network = import.meta.env.VITE_NETWORK_API_URL;
+    const wsUrl = `wss://${network}`;
+    const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
       console.log("WebSocket connected");
@@ -31,7 +31,9 @@ const socket = new WebSocket(wsUrl);
         console.log("WebSocket message received:", data);
         // When an update is received, dispatch a custom event so that refresh functions run.
         if (data.type === "UPDATE_DATA") {
-          window.dispatchEvent(new CustomEvent("refreshData", { detail: data }));
+          window.dispatchEvent(
+            new CustomEvent("refreshData", { detail: data })
+          );
         }
       } catch (err) {
         console.error("Error processing WebSocket message:", err);
@@ -50,7 +52,6 @@ const socket = new WebSocket(wsUrl);
         socket.close();
       }
     };
-    
   }, [userID]);
 
   return ws;

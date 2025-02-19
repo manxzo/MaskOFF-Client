@@ -1,12 +1,15 @@
 import axios from "axios";
-
-const SERVER_URL = "https://p2qcss-3000.csb.app/api/";
+const network = import.meta.env.VITE_NETWORK_API_URL;
+const SERVER_URL = `https://${network}/api/`;
 
 // Helper function to get token from localStorage
 export const getAuthToken = (): string | null => localStorage.getItem("token");
 
 // Create User (Signup)
-export const createUser = async (userInfo: { username: string; password: string }): Promise<any> => {
+export const createUser = async (userInfo: {
+  username: string;
+  password: string;
+}): Promise<any> => {
   const response = await axios.post(`${SERVER_URL}newuser`, userInfo);
   if (response.data.token) {
     localStorage.setItem("token", response.data.token);
@@ -15,8 +18,14 @@ export const createUser = async (userInfo: { username: string; password: string 
 };
 
 // Login User
-export const login = async (username: string, password: string): Promise<any> => {
-  const response = await axios.post(`${SERVER_URL}users/login`, { username, password });
+export const login = async (
+  username: string,
+  password: string
+): Promise<any> => {
+  const response = await axios.post(`${SERVER_URL}users/login`, {
+    username,
+    password,
+  });
   if (response.data.token) {
     localStorage.setItem("token", response.data.token);
   }
@@ -114,11 +123,14 @@ export const retrieveChatMessages = async (chatId: string): Promise<any> => {
 
 // Send a message to a recipient. This endpoint automatically checks for an existing chat (or creates one).
 // It expects { recipientID, text } in the body.
-export const sendMessage = async (recipientID: string, text: string): Promise<any> => {
+export const sendMessage = async (
+  recipientID: string,
+  text: string
+): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.post(
     `${SERVER_URL}chat/send`,
-    { recipientID:recipientID, text:text },
+    { recipientID: recipientID, text: text },
     { headers: { Authorization: `Bearer ${token}` } }
   );
   return response.data;
@@ -126,7 +138,11 @@ export const sendMessage = async (recipientID: string, text: string): Promise<an
 
 // Edit a message in a chat.
 // Expects { newText } in the body and uses the URL /chat/message/:chatId/:messageId
-export const editMessage = async (chatId: string, messageId: string, newText: string): Promise<any> => {
+export const editMessage = async (
+  chatId: string,
+  messageId: string,
+  newText: string
+): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.put(
     `${SERVER_URL}chat/message/${chatId}/${messageId}`,
@@ -137,11 +153,17 @@ export const editMessage = async (chatId: string, messageId: string, newText: st
 };
 
 // Delete a specific message from a chat
-export const deleteMessage = async (chatId: string, messageId: string): Promise<any> => {
+export const deleteMessage = async (
+  chatId: string,
+  messageId: string
+): Promise<any> => {
   const token = getAuthToken();
-  const response = await axios.delete(`${SERVER_URL}chat/message/${chatId}/${messageId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await axios.delete(
+    `${SERVER_URL}chat/message/${chatId}/${messageId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
   return response.data;
 };
 
@@ -174,7 +196,11 @@ export interface Introduction {
 }
 
 // Posts API calls
-export const createPost = async (title: string, content: string, postType: "community" | "job") => {
+export const createPost = async (
+  title: string,
+  content: string,
+  postType: "community" | "job"
+) => {
   try {
     const token = getAuthToken();
     if (!token) throw new Error("No authentication token");
@@ -220,7 +246,9 @@ export const createIntroduction = async (content: string) => {
     return response.data;
   } catch (error: any) {
     console.error("Create introduction error:", error);
-    throw new Error(error.response?.data?.error || "Failed to create introduction");
+    throw new Error(
+      error.response?.data?.error || "Failed to create introduction"
+    );
   }
 };
 
@@ -235,6 +263,8 @@ export const getIntroductions = async () => {
     return response.data;
   } catch (error: any) {
     console.error("Get introductions error:", error);
-    throw new Error(error.response?.data?.error || "Failed to fetch introductions");
+    throw new Error(
+      error.response?.data?.error || "Failed to fetch introductions"
+    );
   }
 };
