@@ -47,8 +47,10 @@ export interface UserConfigType {
 }
 
 // Create the context with an initial value of undefined.
-export const UserConfigContext = createContext<UserConfigType | undefined>(undefined);
-const network = process.env.NETWORK_API_URL;
+export const UserConfigContext = createContext<UserConfigType | undefined>(
+  undefined
+);
+const network = import.meta.env.VITE_NETWORK_API_URL;
 // Helper: Fetch updated user data from your API.
 // Adjust the URL and response parsing as needed.
 async function fetchUpdatedUserData(): Promise<User> {
@@ -91,9 +93,15 @@ export const UserConfigProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error refreshing user config:", error);
       }
     };
-    window.addEventListener("refreshUserConfig", handleRefresh as EventListener);
+    window.addEventListener(
+      "refreshUserConfig",
+      handleRefresh as EventListener
+    );
     return () => {
-      window.removeEventListener("refreshUserConfig", handleRefresh as EventListener);
+      window.removeEventListener(
+        "refreshUserConfig",
+        handleRefresh as EventListener
+      );
     };
   }, []);
 
