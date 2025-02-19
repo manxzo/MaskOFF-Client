@@ -1,6 +1,6 @@
 import axios from "axios";
-
-const SERVER_URL = "https://p2qcss-3000.csb.app/api/";
+const network = process.env.NETWORK_API_URL;
+const SERVER_URL = `https://${network}/api/`;
 
 // Helper function to get token from localStorage
 export const getAuthToken = (): string | null => localStorage.getItem("token");

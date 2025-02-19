@@ -15,7 +15,8 @@ const useWebSocket = (userID: string | null) => {
     
    // Instead of dynamically constructing using window.location.protocol,
 // directly use the secure URL:
-const wsUrl = "wss://p2qcss-3000.csb.app";
+const network = process.env.NETWORK_API_URL;
+const wsUrl = `wss://${network}`;
 const socket = new WebSocket(wsUrl);
 
 

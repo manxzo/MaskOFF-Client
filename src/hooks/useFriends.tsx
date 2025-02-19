@@ -14,7 +14,7 @@ import { UserConfigContext } from "@/config/UserConfig";
 export const useFriends = () => {
   // Global user config update function.
   const { setUser } = useContext(UserConfigContext)!;
-  
+  const network = process.env.NETWORK_API_URL;
   // Local state for error, loading, and friend data.
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -87,7 +87,7 @@ export const useFriends = () => {
     try {
       const token = localStorage.getItem("token");
       const axios = (await import("axios")).default;
-      const response = await axios.delete(`http://localhost:3000/api/friends/request`, {
+      const response = await axios.delete(`http://${network}/api/friends/request`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { friendID },
       });

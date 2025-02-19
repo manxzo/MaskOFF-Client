@@ -10,7 +10,7 @@ export const useChat = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [chats, setChats] = useState<any[]>([]);
-
+  const network = process.env.NETWORK_API_URL;
   // Helper: fetch and process chats (without extra participant mapping).
   const fetchAndProcessChats = async () => {
     const chatsRaw = await retrieveChats();
@@ -73,7 +73,7 @@ export const useChat = () => {
     try {
       const token = localStorage.getItem("token");
       const axios = (await import("axios")).default;
-      const response = await axios.get(`http://localhost:3000/api/chat/${otherUserId}`, {
+      const response = await axios.get(`http://${network}/api/chat/${otherUserId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
