@@ -1,6 +1,6 @@
 import axios from "axios";
 const network = import.meta.env.VITE_NETWORK_API_URL;
-const SERVER_URL = `https://${network}/api/`;
+const SERVER_URL = `http://${network}/api/`;
 
 // Helper function to get token from localStorage
 export const getAuthToken = (): string | null => localStorage.getItem("token");

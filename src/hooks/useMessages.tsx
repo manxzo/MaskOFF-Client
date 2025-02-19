@@ -53,12 +53,15 @@ export const useMessages = () => {
   }, []);
 
   const sendMsg = async (recipientID: string, text: string) => {
+    console.log("Attempting to send message to:", recipientID);
     setLoading(true);
     try {
       const response = await sendMessage(recipientID, text);
+      console.log("Send message response:", response);
       await refreshChats();
       return response;
     } catch (err: any) {
+      console.error("Error sending message:", err);
       setError(err.message || "Error sending message");
       throw err;
     } finally {
