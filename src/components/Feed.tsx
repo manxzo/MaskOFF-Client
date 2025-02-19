@@ -112,7 +112,7 @@ export const Feed = () => {
           ? filteredPosts.map((post) => (
               <Card key={post.postID} className="shadow-sm">
                 <CardHeader className="flex justify-between">
-                  <h3 className="font-semibold">{post.title}</h3>
+                  <h3 className="font-bold text-xl">{post.title}</h3>
                   {post.postType === "job" && (
                     <Chip
                       color="primary"
