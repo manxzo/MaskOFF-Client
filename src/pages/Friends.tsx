@@ -12,8 +12,8 @@ export const Friends = () => {
   // Global user state provides the friend list and friendRequests.
   const { user } = useContext(UserConfigContext)!;
   // The useFriends hook manages additional operations and local friend state.
-  const { acceptRequest, deleteFriendRequest, friendState } = useFriends();
-  const { friendRequests } = friendState;
+  const { acceptRequest, deleteFriendRequest,loading } = useFriends();
+  const { friendRequests } = user;
   const navigate = useNavigate();
 
   return (
@@ -67,10 +67,10 @@ export const Friends = () => {
                   <p>ID: {req.userID}</p>
                 </div>
                 <div className="flex space-x-2">
-                  <Button isIconOnly onPress={() => acceptRequest(req.userID)}>
+                  <Button isIconOnly onPress={() => acceptRequest(req.userID) && deleteFriendRequest(req.userID)} isLoading={loading}>
                     <HeartFilledIcon />
                   </Button>
-                  <Button isIconOnly onPress={() => deleteFriendRequest(req.userID)}>
+                  <Button isIconOnly onPress={() => deleteFriendRequest(req.userID)} isLoading={loading}>
                     <DeleteIcon />
                   </Button>
                   {/* Optionally, also allow messaging from friend requests */}
