@@ -44,27 +44,33 @@ MASKoff is designed to reduce bias in the hiring process while empowering both j
 ## Features
 
 ### Already Implemented:
-- **Authentication & Role-Based Access:**  
-  - Multi-role support (User, Admin) with JWT-based authentication.
-  - Endpoints for user registration (`POST /api/newuser`), login (`POST /api/users/login`), and fetching user data (`GET /api/user/:userID`).
-- **Friend Management:**  
-  - Endpoints for sending (`POST /api/friends/request`), retrieving (`GET /api/friends/requests`), accepting (`POST /api/friends/accept`), and listing friends (`GET /api/friends`).
-- **Direct Messaging & Chat:**  
-  - Chat log creation (`POST /api/chat/create`), message sending (`POST /api/chat/send`), retrieval (`GET /api/chats` and `GET /api/chat/messages/:chatId`), message editing (`PUT /api/chat/message/:chatId/:messageId`), and deletion (`DELETE /api/chat/message/:chatId/:messageId`).
-  - WebSocket server for live notifications (e.g. new messages, deletions, edits).
+- **Authentication & Role-Based Access:**
+  - User registration (`POST /api/newuser`), login (`POST /api/users/login`), and fetching user data (`GET /api/user/:userID`).
+  - An admin panel is available via dedicated admin routes (e.g. `/admin/login`, `/admin/dashboard`, etc.).
+- **Friend Management:**
+  - Endpoints for sending (`POST /api/friends/request`), canceling/declining (`DELETE /api/friends/request`), retrieving (`GET /api/friends/requests`), accepting (`POST /api/friends/accept`), and listing friends (`GET /api/friends`).
+- **Direct Messaging & Chat:**
+  - Chat log creation (`POST /api/chat/create`), message sending (`POST /api/chat/send`), retrieval (`GET /api/chats` and `GET /api/chat/messages/:chatId`), editing (`PUT /api/chat/message/:chatId/:messageId`), and deletion (`DELETE /api/chat/message/:chatId/:messageId`).
+  - Deleting an entire chat (`DELETE /api/chat/:chatId`).
+  - Real‐time notifications via WebSocket.
+- **Community Posts & Introductions:**
+  - **Posts:** Users can now create posts through the `/api/posts` endpoint. A “postType” flag allows a post to be marked as either a regular community post or a job post.
+  - **Introductions:** Anonymous introductions are available via `/api/introduction` (POST) and `/api/introductions` (GET).
 
 ### Planned (Future Implementation):
-- **Community Posts & Comments:**  
-  - CRUD endpoints for posts and comments.
-- **Job Posting & Interview Scheduling:**  
-  - Endpoints for creating, updating, retrieving, and deleting job posts.
-  - Interview scheduling integration.
-- **Profile Customization:**  
-  - Options to update profile details with privacy settings.
-- **Admin Panel:**  
-  - Dedicated admin interfaces and endpoints for moderation.
-- **Anonymous Introductions:**  
-  - Endpoints for anonymous posts (separate from community posts).
+- **Community Post Details & Management:**
+  - Endpoints for viewing a single post (`GET /api/posts/:postId`), updating (`PUT /api/posts/:postId`), and deleting posts (`DELETE /api/posts/:postId`).
+  - Adding and managing comments on posts (`POST /api/posts/:postId/comments`).
+- **Job Posting & Interview Scheduling:**
+  - Although job posts can be created via the posts endpoint (using postType “job”), dedicated job post endpoints (e.g., `/api/jobs`) with full CRUD operations and integrated interview scheduling are planned.
+- **Profile Customization & Privacy Controls:**
+  - Options for users to customize their profile (including themes, custom fields, and privacy settings).
+  - A multi-step onboarding process and profile completion analytics.
+- **Admin Panel Enhancements:**
+  - Extended admin functionalities for content moderation and user management.
+  - (Documentation for admin routes such as `/admin/login`, `/admin/dashboard`, etc. is pending.)
+- **Additional Analytics & Export Features:**
+  - Profile insights (views, engagement), a badge system, and one-click profile export.
 
 ---
 
@@ -115,7 +121,7 @@ MASKoff is designed to reduce bias in the hiring process while empowering both j
   - **Feed Tabs (Planned):**  
     - **Tab 1:** Anonymous Introductions feed.
     - **Tab 2:** Posts feed for both regular posts and job posts (job posts marked with a `#Job` tag).  
-      Both tabs will feature a reusable post input field at the top (similar to the input on Twitter/X) followed by a list of posts sorted by most recent. Tab 2 will include a filter button to view only regular posts or only `#Jobs`.
+      Both tabs will feature a reusable post input field at the top, followed by a list of posts sorted by most recent. Tab 2 will include a filter button to view only regular posts or only `#Jobs`.
 
 ### Feed Tabs UI
 
@@ -150,9 +156,61 @@ The application will feature **two distinct feed tabs** on the Posts page:
 - **Comment**
   - **Fields:** commentID, postID, content, author (User ID), createdAt, updatedAt
 - **JobPost**
-  - **Fields:** jobPostID, title, description, employer (User ID), applicants (array of User IDs), createdAt, updatedAt
+  - **Fields:** jobID, title, description, employer (User ID), applicants (array of User IDs), createdAt, updatedAt
 - **Introduction (Anonymous Post)**
   - **Fields:** introID, content, createdAt
+
+#### Profile Onboarding & Settings
+
+##### Multi-Step Onboarding Wizard
+To enhance user experience, MASKoff will introduce a guided profile onboarding process:
+1. **Step 1:** Basic Info (Username, Profile Picture Upload)
+2. **Step 2:** Add Skills & Interests
+3. **Step 3:** Privacy Preferences (Set visibility for profile sections)
+4. **Step 4:** Recommended Connections (Suggest connections based on shared interests)
+
+##### Profile Completion Score
+- Users will see a profile completion progress bar encouraging them to add missing details.
+- Sections like "Skills, Summary, Location" will be optional but improve profile discoverability.
+- A "Complete Profile" button will be placed on the dashboard for easy access.
+
+##### Customizable Profile Sections
+Users can:
+- Enable/disable visibility for fields (e.g., "Hide location from public").
+- Add custom fields like "Portfolio Links" or "Certifications."
+- Toggle between public/private mode (useful for anonymous browsing).
+
+##### Advanced Privacy Controls
+Users can manage:
+- **Profile Visibility:** Public / Friends Only / Private.
+- **Messaging Preferences:** Everyone / Only Friends / No One.
+- **Friend Request Settings:** Everyone / Friends of Friends / No One.
+- **Anonymous Browsing Mode:** Prevents users from seeing profile views.
+
+##### Profile Customization
+Users can personalize their profile with:
+- **Themes:** Dark mode, custom UI themes.
+- **Profile Backgrounds:** Users can upload a background image.
+- **Pinned Sections:** Users can highlight certain sections (e.g., Featured Jobs, Portfolio).
+
+##### Profile Insights
+Users will have access to analytics:
+- **Profile Views:** Who viewed my profile? (Anonymous/Named)
+- **Post Engagements:** Number of likes/comments on user posts.
+- **Message Response Rate:** If the user is active in responding to messages.
+
+##### Badge System
+Earn badges as users complete milestones and engage with the platform:
+- **100% Profile Completion:** Badge earned when a user's profile is fully filled out.
+- **Social Butterfly:** Connect with 10+ friends to earn this badge.
+- **Early Adopter:** Earned by joining MASKoff during the launch phase.
+- **Community Contributor:** Awarded for posting 10 or more community posts.
+- **Quick Responder:** Earned for maintaining a high message response rate.
+
+##### One-Click Profile Export
+Users can download their profile as a PDF/Resume:
+- **Export Profile as a Resume** (PDF format).
+- **Option to Generate a Resume** based on profile fields.
 
 ---
 
