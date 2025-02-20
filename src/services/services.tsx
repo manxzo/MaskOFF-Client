@@ -176,7 +176,7 @@ export const deleteChat = async (chatId: string): Promise<any> => {
   return response.data;
 };
 
-// Post and Introduction Types
+// Extended Post interface to include comments
 export interface Post {
   postID: string;
   title: string;
@@ -184,9 +184,18 @@ export interface Post {
   author: {
     username: string;
     userID: string;
-  };
+  } | null;
   postType: "community" | "job";
   createdAt: Date;
+  // Array of comments associated with the post
+  comments: {
+    author: {
+      username: string;
+      userID: string;
+    } | null;
+    content: string;
+    createdAt: Date;
+  }[];
 }
 
 export interface Introduction {
@@ -266,5 +275,28 @@ export const getIntroductions = async () => {
     throw new Error(
       error.response?.data?.error || "Failed to fetch introductions"
     );
+  }
+};
+
+/**
+ * Creates a new comment on a post
+ * postId - ID of the post to comment on
+ * content - Content of the comment
+ *
+ */
+export const createComment = async (postId: string, content: string) => {
+  try {
+    const token = getAuthToken();
+    if (!token) throw new Error("No authentication token");
+
+    const response = await axios.post(
+      `${SERVER_URL}posts/${postId}/comments`,
+      { content },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error("Create comment error:", error);
+    throw new Error(error.response?.data?.error || "Failed to create comment");
   }
 };
