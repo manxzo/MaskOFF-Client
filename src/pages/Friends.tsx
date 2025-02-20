@@ -9,9 +9,9 @@ import { DeleteIcon, HeartFilledIcon } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 
 export const Friends = () => {
-  // Global user state provides the friend list and friendRequests.
+  // global user state provides friend list && friendRequests
   const { user } = useContext(UserConfigContext)!;
-  // The useFriends hook manages additional operations and local friend state.
+  // useFriends hook manage additional operations and local friend state
   const { acceptRequest, deleteFriendRequest,loading } = useFriends();
   const { friendRequests } = user;
   const navigate = useNavigate();
@@ -33,8 +33,8 @@ export const Friends = () => {
                   <p>ID: {friend.userID}</p>
                 </div>
                 <div className="flex space-x-2">
-                  {/* Accept and delete buttons can be here if needed for friend requests,
-                      but for friend list we add a Message button */}
+                  {/* accept and delete buttons can be here if needed for friend requests,
+                      but for friend list we add message button */}
                   <Button
                     onPress={() =>
                       navigate("/messages", {
@@ -54,7 +54,6 @@ export const Friends = () => {
             ))
           )}
         </div>
-        {/* Friend Requests */}
         <div className="mt-6">
           <h2>Friend Requests</h2>
           {friendRequests.length === 0 ? (
@@ -73,7 +72,7 @@ export const Friends = () => {
                   <Button isIconOnly onPress={() => deleteFriendRequest(req.userID)} isLoading={loading}>
                     <DeleteIcon />
                   </Button>
-                  {/* Optionally, also allow messaging from friend requests */}
+                  {/* optional, also allow messaging from friend requests */}
                   <Button
                     onPress={() =>
                       navigate("/messages", {

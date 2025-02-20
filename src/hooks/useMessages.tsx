@@ -1,6 +1,3 @@
-// [Client: useMessages.tsx]
-// This hook handles messaging operations (send, edit, delete, get messages)
-// and refreshes chat data on updates. It also listens for "refreshData" events.
 import { useState, useContext, useEffect } from "react";
 import { sendMessage, editMessage, deleteMessage, retrieveChatMessages, retrieveChats } from "@/services/services";
 import { UserConfigContext } from "@/config/UserConfig";
@@ -10,7 +7,7 @@ export const useMessages = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Helper: fetch and process chats.
+  // helper: fetch and process chats
   const fetchAndProcessChats = async () => {
     const chatsRaw = await retrieveChats();
     const chats = await Promise.all(
@@ -41,7 +38,6 @@ export const useMessages = () => {
     }
   };
 
-  // Listen for "refreshData" events.
   useEffect(() => {
     const handleRefresh = () => {
       refreshChats();

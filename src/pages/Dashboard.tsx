@@ -9,8 +9,8 @@ import useWebSocket from "@/hooks/useWebSocket"; // Import the WS hook
 export const Dashboard = () => {
   const { user } = useContext(UserConfigContext)!;
 
-  // If the user is logged in (has a userID), set up the WebSocket connection.
-  // This ensures that the WS connection is active in a top-level page.
+  // if user logged in (has a userID)-> set up the WebSocket connection
+  // this ensure the WS connection is active in a top-level page
   useWebSocket(user.userID);
 
   return (

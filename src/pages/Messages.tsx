@@ -31,17 +31,17 @@ export const Messages = () => {
 
   const location = useLocation();
 
-  // On mount, check if a preselectedUser was passed in navigation state.
+  // on mount, check if preselectedUser was passed in navigation state
   useEffect(() => {
     if (location.state && location.state.preselectedUser) {
       setSelectedContact(location.state.preselectedUser);
     }
   }, [location]);
 
-  // Build unified contacts list based on chats and friends.
+  // build unified contacts list based on chats and friends
   useEffect(() => {
     const contactsMap = new Map<string, Contact>();
-    // Process chats: always pick the other participant.
+    // process chats->? always pick the other participant.
     chats?.forEach((chat) => {
       const otherParticipant = chat.participants.find(
         (p) => p.userID !== currentUserID
@@ -54,7 +54,7 @@ export const Messages = () => {
         });
       }
     });
-    // Add friends that don't have an associated chat.
+    // add friends that have no associated chat
     user?.friends?.forEach((friend: Friend) => {
       if (!contactsMap.has(friend.userID)) {
         contactsMap.set(friend.userID, {
@@ -66,7 +66,7 @@ export const Messages = () => {
     setContacts(Array.from(contactsMap.values()));
   }, [chats, user.friends, currentUserID]);
 
-  // Derive the current chat based on the selected contact.
+  // get the current chat based on the selected contact
   const currentChat: Chat | null = selectedContact
     ? chats.find((chat) =>
         chat.participants.some((p) => p.userID === selectedContact.id)

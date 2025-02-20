@@ -1,7 +1,3 @@
-// [Client: hooks/useFriends.tsx]
-// This hook manages friend operations and friend state.
-// It now listens for "refreshData" events (from the WebSocket) to automatically refresh friend data.
-
 import { useState, useContext, useEffect } from "react";
 import {
   sendFriendReq,
@@ -12,22 +8,18 @@ import {
 import { UserConfigContext } from "@/config/UserConfig";
 
 export const useFriends = () => {
-  // Global user config update function.
+
   const { setUser } = useContext(UserConfigContext)!;
   const network = import.meta.env.VITE_NETWORK_API_URL;
-  // Local state for error, loading, and friend data.
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Helper: Refresh friend data by retrieving friend requests and friend list.
-  // Updates both the global user config and the local friendState.
   const refreshFriends = async () => {
     try {
       const [friendRequests, friends] = await Promise.all([
         retrieveFriendReq(),
         retrieveFriendList(),
       ]);
-      // Update global user config.
       setUser((prev) => ({
         ...prev,
         friends: friends || [],
@@ -39,7 +31,7 @@ export const useFriends = () => {
     }
   };
 
-  // Send a friend request.
+  // friend req
   const sendRequest = async (friendID: string) => {
     setLoading(true);
     try {
@@ -69,8 +61,7 @@ export const useFriends = () => {
     }
   };
 
-  // Delete (decline) a friend request.
-  // Uses axios directly since it's not wrapped in services.
+  // del friend req
   const deleteFriendRequest = async (friendID: string) => {
     setLoading(true);
     try {
@@ -93,9 +84,6 @@ export const useFriends = () => {
     }
   };
 
-  // Listen for "refreshData" events from the WebSocket.
-  // When the event's detail indicates an update for friends (or is unspecified),
-  // refresh the friend data.
   useEffect(() => {
     const handleRefresh = (event: CustomEvent) => {
       if (!event.detail || event.detail.update === "friends") {

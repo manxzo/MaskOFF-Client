@@ -300,4 +300,4 @@ Users can download their profile as a PDF/Resume:
 
 ## Contact
 
-For any questions, feedback, or further information, please reach out via email at [app.MASKoff@gmail.com](mailto:app.MASKoff@gmail.com).
+For any questions, feedback, or further information, please reach out via email at [app.MaskOFF@gmail.com](mailto:app.MaskOFF@gmail.com).

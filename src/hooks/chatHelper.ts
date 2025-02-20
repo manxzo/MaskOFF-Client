@@ -1,7 +1,7 @@
 import { retrieveChats ,retrieveChatMessages} from "@/services/services";
 
-// A helper function to fetch chats and process their messages.
-// If `mapParticipants` is true, it also maps participants.
+// helper function -> fetch chats and process their messages
+// if true, also map participants
 export const fetchAndProcessChats = async (mapParticipants: boolean = false) => {
     const chatsRaw = await retrieveChats();
     const chats = await Promise.all(

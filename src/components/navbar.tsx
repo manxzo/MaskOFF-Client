@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 import { useContext } from "react";
 import { Button } from "@heroui/button";
 import { Kbd } from "@heroui/kbd";
@@ -33,12 +32,12 @@ export const Navbar = () => {
   const { user, setUser } = useContext(UserConfigContext)!;
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  // Choose nav items based on whether the user is logged in.
+  // conditional, !loggedIn || loggedIn
   const navItems = token
     ? siteConfig.dashboardNavItems
     : siteConfig.defaultNavItems;
 
-  // Basic logout handler.
+  // logic handler
   const handleLogout = () => {
     logoutService();
     setUser({

@@ -23,7 +23,7 @@ export const Feed = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch posts and introductions
+  // fetch all posts
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -62,7 +62,7 @@ export const Feed = () => {
       }
     } catch (err) {
       setError("Failed to create post");
-      throw err; // Re-throw to handle in the PostInput component
+      throw err; // re-throw to handle in the PostInput component
     }
   };
 

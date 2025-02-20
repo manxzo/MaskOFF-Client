@@ -21,7 +21,7 @@ export const Login = () => {
       setPassword("");
       navigate("/dashboard");
     } catch (err) {
-      // Error handled by hook
+      // handled by hook
     }
   };
 
