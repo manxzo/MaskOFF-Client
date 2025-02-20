@@ -3,7 +3,6 @@ import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Card, CardBody } from "@heroui/card";
 
-// Types for comment data structure
 interface Comment {
   author: {
     username: string;
@@ -12,27 +11,17 @@ interface Comment {
   createdAt: Date;
 }
 
-// Props for the CommentSection component
 interface CommentSectionProps {
   postID: string;
   comments: Comment[];
   onSubmitComment: (postId: string, content: string) => Promise<void>;
 }
 
-/**
- * CommentSection Component
- * Displays a list of comments for a post and allows adding new comments
- */
 export const CommentSection = ({ postID, comments, onSubmitComment }: CommentSectionProps) => {
-  // State for managing comment section UI
   const [isExpanded, setIsExpanded] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /**
-   * Handles the submission of a new comment
-   * Clears the input and collapses the section after successful submission
-   */
   const handleSubmit = async () => {
     if (!newComment.trim()) return;
 
@@ -50,7 +39,6 @@ export const CommentSection = ({ postID, comments, onSubmitComment }: CommentSec
 
   return (
     <div className="mt-2">
-      {/* Comment toggle button with count */}
       <Button
         variant="light"
         onPress={() => setIsExpanded(!isExpanded)}
@@ -61,7 +49,6 @@ export const CommentSection = ({ postID, comments, onSubmitComment }: CommentSec
 
       {isExpanded && (
         <div className="mt-3 space-y-3">
-          {/* New comment input form */}
           <div className="flex gap-2">
             <Input
               type="text"
@@ -81,12 +68,8 @@ export const CommentSection = ({ postID, comments, onSubmitComment }: CommentSec
             </Button>
           </div>
 
-          {/* List of existing comments */}
           {comments
-            // DEBUG: Filter out bad comment data to prevent crashes
-            // TODO: Need to clean up database - some comments have null authors
             .filter(comment => comment && comment.author)
-            // Sort comments by date, newest first
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .map((comment, index) => (
               <Card key={index} className="bg-default-50">
