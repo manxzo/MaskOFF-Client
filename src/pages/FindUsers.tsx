@@ -53,7 +53,7 @@ export const FindUsers = () => {
                 >
                   <HeartFilledIcon />
                 </Button>
-                {/* New Message button that navigates to /messages with preselectedUser in state */}
+
                 <Button
                   onPress={() =>
                     navigate("/messages", {

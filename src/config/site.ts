@@ -1,4 +1,3 @@
-// src/config/site.ts
 export const siteConfig = {
   name: "MASKoff",
   description:
@@ -10,6 +9,7 @@ export const siteConfig = {
     { label: "About", href: "/about" },
   ],
   dashboardNavItems: [
+    { label: "Profile", href: "/profile" },
     { label: "Dashboard", href: "/dashboard" },
     { label: "Find Users", href: "/find-users" },
     { label: "Friend List", href: "/friends" },

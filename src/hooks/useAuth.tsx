@@ -1,9 +1,3 @@
-// [Client: useAuth.tsx]
-// This hook handles authentication and session restoration. It now includes a helper
-// to refresh chats (with mapped participants) and listens for WebSocket-driven refresh events.
-// When a "refreshData" event occurs, you can choose to refresh the entire user session 
-// (or parts of it, such as chats and friends) via API calls.
-
 import { useState, useContext, useEffect } from "react";
 import {
   login,
@@ -21,7 +15,6 @@ export const useAuth = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Helper to fetch and process chats with participant mapping.
   const fetchAndProcessChats = async (mapParticipants: boolean = false) => {
     const chatsRaw = await retrieveChats();
     const chats = await Promise.all(
@@ -62,11 +55,8 @@ export const useAuth = () => {
     return chats;
   };
 
-  // Listen for refreshData events to update the session (if desired)
   useEffect(() => {
     const handleRefresh = async (event: CustomEvent) => {
-      // You might check event.detail.update to decide what to refresh.
-      // For a full refresh:
       console.log("Received refreshData event in useAuth", event.detail);
       try {
         const storedUserID = localStorage.getItem("userID");

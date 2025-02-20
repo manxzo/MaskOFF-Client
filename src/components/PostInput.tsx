@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Card, CardBody, CardFooter } from "@heroui/card";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { Switch } from "@heroui/switch";
 import { Avatar } from "@heroui/avatar";
-import { useContext } from "react";
 import { UserConfigContext } from "@/config/UserConfig";
 
 interface PostInputProps {
@@ -19,9 +18,13 @@ export const PostInput = ({ type, onSubmit }: PostInputProps) => {
   const [isJob, setIsJob] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // look first in the user context for a profilePicture
+  const avatarSrc =
+    user.profilePicture ||
+    `https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`;
+
   const handleSubmit = async () => {
     if (!content.trim() || (type === "posts" && !title.trim())) return;
-
     setIsSubmitting(true);
     try {
       await onSubmit({
@@ -43,10 +46,7 @@ export const PostInput = ({ type, onSubmit }: PostInputProps) => {
     <Card className="mb-4">
       <CardBody>
         <div className="flex gap-3">
-          <Avatar
-            src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`}
-            className="h-10 w-10"
-          />
+          <Avatar src={avatarSrc} className="h-10 w-10" />
           <div className="w-full">
             {type === "posts" && (
               <Input
@@ -69,11 +69,7 @@ export const PostInput = ({ type, onSubmit }: PostInputProps) => {
       <CardFooter className="flex items-center justify-between">
         {type === "posts" && (
           <div className="flex items-center gap-2">
-            <Switch
-              size="sm"
-              isSelected={isJob}
-              onValueChange={setIsJob}
-            />
+            <Switch size="sm" isSelected={isJob} onValueChange={setIsJob} />
             <span className="text-sm">Job post</span>
           </div>
         )}

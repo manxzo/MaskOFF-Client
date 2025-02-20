@@ -2,10 +2,10 @@ import axios from "axios";
 const network = import.meta.env.VITE_NETWORK_API_URL;
 const SERVER_URL = `http://${network}/api/`;
 
-// Helper function to get token from localStorage
+// helper function to get token frm localStorage
 export const getAuthToken = (): string | null => localStorage.getItem("token");
 
-// Create User (Signup)
+// create user (signup)
 export const createUser = async (userInfo: {
   username: string;
   password: string;
@@ -17,7 +17,7 @@ export const createUser = async (userInfo: {
   return response.data;
 };
 
-// Login User
+// user login
 export const login = async (
   username: string,
   password: string
@@ -32,7 +32,7 @@ export const login = async (
   return response.data;
 };
 
-// Fetch User Data if userID matches token
+// fetch user data if userID match token
 export const fetchUserData = async (userID: string): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.get(`${SERVER_URL}user/${userID}`, {
@@ -41,18 +41,18 @@ export const fetchUserData = async (userID: string): Promise<any> => {
   return response.data;
 };
 
-// Logout User
+// user logout
 export const logout = (): void => {
   localStorage.removeItem("token");
 };
 
-// Retrieve all users
+// get all users
 export const retrieveAllUsers = async (): Promise<any> => {
   const response = await axios.get(`${SERVER_URL}users`);
   return response.data;
 };
 
-// Send a Friend Request (uses friendID)
+// send friend req (using friendID)
 export const sendFriendReq = async (friendID: string): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.post(
@@ -63,7 +63,7 @@ export const sendFriendReq = async (friendID: string): Promise<any> => {
   return response.data;
 };
 
-// Retrieve Friend Requests for logged-in user
+// get friend requests for logged-in user
 export const retrieveFriendReq = async (): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.get(`${SERVER_URL}friends/requests`, {
@@ -72,7 +72,7 @@ export const retrieveFriendReq = async (): Promise<any> => {
   return response.data;
 };
 
-// Accept Friend Request (uses friendID)
+// accept friend request (using friendID)
 export const acceptFriendReq = async (friendID: string): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.post(
@@ -83,7 +83,7 @@ export const acceptFriendReq = async (friendID: string): Promise<any> => {
   return response.data;
 };
 
-// Retrieve Friend List for logged-in user
+// get friend list for logged-in user
 export const retrieveFriendList = async (): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.get(`${SERVER_URL}friends`, {
@@ -92,7 +92,7 @@ export const retrieveFriendList = async (): Promise<any> => {
   return response.data;
 };
 
-// Start Chat between Logged-in User and another participant (uses recipientID)
+// start chat between logged-in users (using recipientID)
 export const startChat = async (recipientID: string): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.post(
@@ -103,7 +103,7 @@ export const startChat = async (recipientID: string): Promise<any> => {
   return response.data;
 };
 
-// Retrieve all Chats belonging to the logged-in user
+// get all chats belonging to logged-in user
 export const retrieveChats = async (): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.get(`${SERVER_URL}chats`, {
@@ -112,7 +112,7 @@ export const retrieveChats = async (): Promise<any> => {
   return response.data;
 };
 
-// Retrieve all messages in a Chat (decrypted for participants)
+// get all messages in 1 chat (decrypted for participants)
 export const retrieveChatMessages = async (chatId: string): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.get(`${SERVER_URL}chat/messages/${chatId}`, {
@@ -121,8 +121,8 @@ export const retrieveChatMessages = async (chatId: string): Promise<any> => {
   return response.data;
 };
 
-// Send a message to a recipient. This endpoint automatically checks for an existing chat (or creates one).
-// It expects { recipientID, text } in the body.
+// send message to recipient. this endpoint automatically check for an existing chat (or create one).
+// it expect { recipientID, text } in body
 export const sendMessage = async (
   recipientID: string,
   text: string
@@ -136,8 +136,8 @@ export const sendMessage = async (
   return response.data;
 };
 
-// Edit a message in a chat.
-// Expects { newText } in the body and uses the URL /chat/message/:chatId/:messageId
+// edit a message in a chat
+// expects { newText } in the body and uses the URL /chat/message/:chatId/:messageId
 export const editMessage = async (
   chatId: string,
   messageId: string,
@@ -152,7 +152,7 @@ export const editMessage = async (
   return response.data;
 };
 
-// Delete a specific message from a chat
+// delete specific message from chat
 export const deleteMessage = async (
   chatId: string,
   messageId: string
@@ -167,7 +167,7 @@ export const deleteMessage = async (
   return response.data;
 };
 
-// Delete an entire chat
+// delete entire chat
 export const deleteChat = async (chatId: string): Promise<any> => {
   const token = getAuthToken();
   const response = await axios.delete(`${SERVER_URL}chat/${chatId}`, {
@@ -176,7 +176,6 @@ export const deleteChat = async (chatId: string): Promise<any> => {
   return response.data;
 };
 
-// Extended Post interface to include comments
 export interface Post {
   postID: string;
   title: string;
@@ -204,7 +203,7 @@ export interface Introduction {
   createdAt: Date;
 }
 
-// Posts API calls
+// posts API calls
 export const createPost = async (
   title: string,
   content: string,
@@ -241,7 +240,7 @@ export const getPosts = async () => {
   }
 };
 
-// Introductions API calls
+// introductions API calls
 export const createIntroduction = async (content: string) => {
   try {
     const token = getAuthToken();

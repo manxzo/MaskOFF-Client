@@ -1,6 +1,3 @@
-// [Client: useChat.tsx]
-// This hook manages chat-related operations (create, delete, find, etc.).
-// It listens for the "refreshData" event to update its local chats.
 import { useState, useContext, useEffect } from "react";
 import {
   startChat,
@@ -16,7 +13,6 @@ export const useChat = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [chats, setChats] = useState<any[]>([]);
   const network = import.meta.env.VITE_NETWORK_API_URL;
-  // Helper: fetch and process chats (without extra participant mapping).
   const fetchAndProcessChats = async () => {
     const chatsRaw = await retrieveChats();
     const chats = await Promise.all(

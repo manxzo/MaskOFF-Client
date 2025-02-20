@@ -1,12 +1,11 @@
-// src/config/UserConfig.tsx
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 
-// Define the Message interface matching server response keys.
+//!! IMPORTANT: STORE ALL INTERFACE HERE GLOBALLY EXPORT
 export interface Message {
   messageID: string;
   sender: string;
   recipient: string;
-  message: string; // This holds the message text.
+  message: string;
   timestamp: Date;
 }
 
@@ -15,7 +14,6 @@ export interface Participant {
   username: string;
 }
 
-// Define the Chat interface matching server response keys.
 export interface Chat {
   chatID: string;
   participants: Participant[];
@@ -24,35 +22,38 @@ export interface Chat {
   updatedAt: Date;
 }
 
-// Define the Friend interface matching server response keys.
 export interface Friend {
   userID: string;
   username: string;
 }
 
-// Define the User interface matching server response keys.
 export interface User {
   username: string;
   userID: string;
+  profilePicture?: string;
+  bio?: string;
+  skills?: string[];
+  interests?: string[];
+  privacy?: {
+    profileVisibility: string;
+    messagingPreference: string;
+    friendRequestSetting: string;
+  };
   friends: Friend[];
   friendRequests: Friend[];
   chats: Chat[];
 }
 
-// Define the context type with the proper function signatures.
 export interface UserConfigType {
   user: User;
   setUser: React.Dispatch<React.SetStateAction<User>>;
   updateChats: (chats: Chat[]) => void;
 }
 
-// Create the context with an initial value of undefined.
 export const UserConfigContext = createContext<UserConfigType | undefined>(
   undefined
 );
 const network = import.meta.env.VITE_NETWORK_API_URL;
-// Helper: Fetch updated user data from your API.
-// Adjust the URL and response parsing as needed.
 async function fetchUpdatedUserData(): Promise<User> {
   const userID = localStorage.getItem("userID");
   if (!userID) {
@@ -63,11 +64,9 @@ async function fetchUpdatedUserData(): Promise<User> {
     throw new Error("Failed to fetch updated user data");
   }
   const data = await response.json();
-  // Assuming your API returns the user data in the proper format.
   return data;
 }
 
-// Create the provider component.
 export const UserConfigProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User>({
     username: "",
@@ -77,12 +76,10 @@ export const UserConfigProvider = ({ children }: { children: ReactNode }) => {
     chats: [],
   });
 
-  // Function to update the chats array in the user object.
   const updateChats = (newChats: Chat[]): void => {
     setUser((prevUser) => ({ ...prevUser, chats: newChats }));
   };
 
-  // Listen for "refreshUserConfig" events to update the global config automatically.
   useEffect(() => {
     const handleRefresh = async (event: CustomEvent) => {
       console.log("Received refreshUserConfig event", event.detail);

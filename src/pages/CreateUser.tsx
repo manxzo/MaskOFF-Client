@@ -16,9 +16,9 @@ export const CreateUser = () => {
     e.preventDefault();
     try {
       await registerUser(username, password);
-      navigate('/dashboard');
+      navigate('/profile-onboarding/step1');
     } catch (err) {
-      // Error handled by hook.
+      // handled by hook.
     }
   };
 
@@ -39,6 +39,7 @@ export const CreateUser = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Choose a password"
+            autoComplete="new-password"
           />
           {error && <p color="danger">{error}</p>}
           <Button type="submit" disabled={loading}>
