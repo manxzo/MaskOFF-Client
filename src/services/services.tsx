@@ -176,6 +176,7 @@ export const deleteChat = async (chatId: string): Promise<any> => {
   return response.data;
 };
 
+// Post and Introduction Types
 export interface Post {
   postID: string;
   title: string;
