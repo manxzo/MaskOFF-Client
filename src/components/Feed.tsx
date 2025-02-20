@@ -62,7 +62,24 @@ export const Feed = () => {
       }
     } catch (err) {
       setError("Failed to create post");
-      throw err; // Re-throw to handle in the PostInput component
+      throw err; // re-throw to handle in the PostInput component
+    }
+  };
+
+  /**
+   * Handles the submission of a new comment
+   * Updates the posts state with the new comment
+   */
+  const handleComment = async (postId: string, content: string) => {
+    try {
+      const updatedPost = await createComment(postId, content);
+      // Replace the old post with the updated one containing the new comment
+      setPosts(posts.map(post => 
+        post.postID === postId ? updatedPost : post
+      ));
+    } catch (err) {
+      console.error("Comment error:", err);
+      throw err;
     }
   };
 
