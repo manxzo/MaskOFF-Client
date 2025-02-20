@@ -186,7 +186,7 @@ export interface Post {
   } | null;
   postType: "community" | "job";
   createdAt: Date;
-  // Array of comments associated with the post
+  // array of comments related with post
   comments: {
     author: {
       username: string;
@@ -277,12 +277,6 @@ export const getIntroductions = async () => {
   }
 };
 
-/**
- * Creates a new comment on a post
- * postId - ID of the post to comment on
- * content - Content of the comment
- *
- */
 export const createComment = async (postId: string, content: string) => {
   try {
     const token = getAuthToken();
