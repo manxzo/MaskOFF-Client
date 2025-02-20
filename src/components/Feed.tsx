@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import { Button } from "@heroui/button";
 import { Switch } from "@heroui/switch";
-import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
+import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Chip } from "@heroui/chip";  
 import {
   createPost,
   getPosts,
   createIntroduction,
   getIntroductions,
+  createComment,
   type Post,
   type Introduction,
 } from "@/services/services";
 import { PostInput } from "./PostInput";
+import { CommentSection } from "./CommentSection";
 
 export const Feed = () => {
   const [activeTab, setActiveTab] = useState<"intros" | "posts">("posts");
@@ -64,6 +66,23 @@ export const Feed = () => {
     }
   };
 
+  /**
+   * Handles the submission of a new comment
+   * Updates the posts state with the new comment
+   */
+  const handleComment = async (postId: string, content: string) => {
+    try {
+      const updatedPost = await createComment(postId, content);
+      // Replace the old post with the updated one containing the new comment
+      setPosts(posts.map(post => 
+        post.postID === postId ? updatedPost : post
+      ));
+    } catch (err) {
+      console.error("Comment error:", err);
+      throw err;
+    }
+  };
+
   const filteredPosts = showOnlyJobs
     ? posts.filter((post) => post.postType === "job")
     : posts;
@@ -110,36 +129,46 @@ export const Feed = () => {
       <div className="space-y-4">
         {activeTab === "posts"
           ? filteredPosts.map((post) => (
-              <Card key={post.postID} className="shadow-sm">
-                <CardHeader className="flex justify-between">
-                  <h3 className="font-bold text-xl">{post.title}</h3>
-                  {post.postType === "job" && (
-                    <Chip
-                      color="primary"
-                      variant="flat"
-                      size="sm"
-                    >
-                      Job
-                    </Chip>
-                  )}
-                </CardHeader>
-                <CardBody>
-                  <p>{post.content}</p>
-                </CardBody>
-                <CardFooter className="flex justify-between">
-                  <span>By {post.author.username}</span>
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                </CardFooter>
-              </Card>
+              post.author && (
+                <Card key={post.postID} className="shadow-sm">
+                  <CardHeader className="flex items-center gap-2">
+                    <div className="flex-grow flex items-center gap-2">
+                      <h3 className="font-semibold">{post.title}</h3>
+                      <span className="text-sm text-default-400">
+                        • {post.author.username} • {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {post.postType === "job" && (
+                      <Chip
+                        color="primary"
+                        variant="flat"
+                        size="sm"
+                      >
+                        Job
+                      </Chip>
+                    )}
+                  </CardHeader>
+                  <CardBody>
+                    <p>{post.content}</p>
+                    <CommentSection
+                      postID={post.postID}
+                      comments={post.comments?.filter(comment => comment?.author) || []}
+                      onSubmitComment={handleComment}
+                    />
+                  </CardBody>
+                </Card>
+              )
             ))
           : introductions.map((intro) => (
               <Card key={intro.introID} className="shadow-sm">
                 <CardBody>
                   <p>{intro.content}</p>
+                  <div className="flex justify-end mt-2">
+                    <span className="text-sm text-default-400">
+                      {new Date(intro.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </CardBody>
-                <CardFooter className="flex justify-end">
-                  <span>{new Date(intro.createdAt).toLocaleDateString()}</span>
-                </CardFooter>
               </Card>
             ))}
       </div>
