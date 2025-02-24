@@ -74,7 +74,7 @@ export const getUser = (userID: string) => apiClient.get(`/user/${userID}`);
 // update user profile
 export const updateProfile = (
   userID: string,
-  data: { publicInfo?: any; anonymousInfo?: any }
+  data: { publicInfo?: any; anonymousInfo?: any; privacy?:boolean }
 ) => apiClient.put(`/profile/${userID}`, data);
 // update user Avatar
 export const uploadAvatar = (avatar: File) => {
