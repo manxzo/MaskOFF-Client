@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   createJob,
   getJobs,
-  getJob,
   updateJob,
   deleteJob,
 } from "@/services/services";
