@@ -86,6 +86,9 @@ export const uploadAvatar = (avatar: File) => {
     },
   });
 };
+// delete user Avatar
+export const deleteAvatar = (userID: string) =>
+  apiClient.delete(`/avatar/${userID}`);
 
 // list all users (public info)
 export const listUsers = () => apiClient.get("/users");
