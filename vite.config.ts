@@ -6,7 +6,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   server: {
-    allowedHosts: ["dkktf4-3000.csb.app"], // Add your CodeSandbox host
+    allowedHosts: ["mask-off-server.vercel.app/"], // Add your CodeSandbox host
     host: "0.0.0.0", // Allows connections from external networks
     port: 5173, // Ensure this is your correct port
   },
