@@ -17,7 +17,7 @@ const Chat = () => {
   const [editedText, setEditedText] = useState<string>("");
   const [updateSettingsMode, setUpdateSettingsMode] = useState(false);
   const [jobUpdate, setJobUpdate] = useState<{
-    revealIdentity?: boolean;
+    applicantAnonymous?: boolean;
     status?: string;
     offerPrice?: number;
   }>({});
@@ -36,10 +36,78 @@ const Chat = () => {
     updateJobSettings,
   } = useChats();
 
+  // Split chats by type
   const generalChats = chats.filter((chat) => chat.chatType === "general");
   const jobChats = chats.filter((chat) => chat.chatType === "job");
+  console.log(chats);
 
-  // Fetch chats 
+  // Helper to determine the display name for a chat (for the chat list)
+  const findOtherUsername = (chat: any) => {
+    if (!chat || !chat.participants || !user) return "";
+    if (chat.chatType !== "job") {
+      const other = chat.participants.find((p: any) => p.userID && p.userID !== user.userID);
+      return other ? other.username : "";
+    } else {
+      const { transaction } = chat;
+      if (!transaction) return "";
+      const applicantID = transaction.applicantID?.toString();
+      if (user.userID === applicantID) {
+        // Current user is the applicant, so show the other (hirer)
+        const hirer = chat.participants.find((p: any) => p.userID && p.userID !== applicantID);
+        return hirer ? hirer.username : "";
+      } else {
+        // Current user is not the applicant
+        if (transaction.applicantAnonymous && !transaction.revealIdentity) {
+          // Look for the anonymous applicant info
+          const applicant = chat.participants.find(
+            (p: any) => !p.userID && p.anonymousInfo && p.anonymousInfo.anonymousIdentity
+          );
+          return applicant ? applicant.anonymousInfo.anonymousIdentity : "Anonymous";
+        } else {
+          const applicant = chat.participants.find((p: any) => p.userID === applicantID);
+          return applicant ? applicant.username : "";
+        }
+      }
+    }
+  };
+
+  // Helper to get the proper display name for each message
+  const getDisplayName = (chat: any, senderId: string) => {
+    if (!chat || !chat.participants || !user) return "";
+    if (senderId === user.userID) {
+      if (
+        chat.chatType === "job" &&
+        chat.transaction &&
+        chat.transaction.applicantAnonymous &&
+        !chat.transaction.revealIdentity
+      ) {
+        return "You (Anonymous)";
+      }
+      return "You";
+    }
+    if (chat.chatType !== "job") {
+      const participant = chat.participants.find((p: any) => p.userID === senderId);
+      return participant ? participant.username : "";
+    } else {
+      const { transaction } = chat;
+      if (
+        transaction &&
+        transaction.applicantAnonymous &&
+        !transaction.revealIdentity &&
+        transaction.applicantID === senderId
+      ) {
+        const applicant = chat.participants.find(
+          (p: any) => !p.userID && p.anonymousInfo && p.anonymousInfo.anonymousIdentity
+        );
+        return applicant ? applicant.anonymousInfo.anonymousIdentity : "Anonymous";
+      } else {
+        const participant = chat.participants.find((p: any) => p.userID === senderId);
+        return participant ? participant.username : "";
+      }
+    }
+  };
+
+  // Fetch chats whenever the selected key (chat type) changes
   useEffect(() => {
     (async () => {
       await fetchChats();
@@ -49,7 +117,6 @@ const Chat = () => {
         setSelectedChatID(currentChats[0].chatID);
       }
     })();
-   
   }, [selectedKey]);
 
   const handleSelectChat = async (chatID: string) => {
@@ -61,9 +128,7 @@ const Chat = () => {
 
   const handleSendMessage = async () => {
     if (selectedChat && newMessage.trim()) {
-      await sendChatMessage(
-        { chatID: selectedChat.chatID, text: newMessage.trim() }
-      );
+      await sendChatMessage({ chatID: selectedChat.chatID, text: newMessage.trim() });
       setNewMessage("");
     }
   };
@@ -73,25 +138,6 @@ const Chat = () => {
       await editChatMessage(selectedChat.chatID, messageID, editedText.trim());
       setEditingMessageID(null);
       setEditedText("");
-    }
-  };
-
-  const findOtherUsername = (chat: any) => {
-    if (!chat || !chat.participants || !user) return "";
-    if (chat.chatType !== "job") {
-      const other = chat.participants.find((p: any) => p.userID !== user.userID);
-      return other ? other.username : "";
-    }
-    const { transaction } = chat;
-    if (!transaction) return "";
-    const applicantID = transaction.applicantID?.toString();
-    if (user.userID === applicantID) {
-      const hirer = chat.participants.find((p: any) => p.userID !== applicantID);
-      return hirer ? hirer.username : "";
-    } else {
-      return transaction.applicantAnonymous && !transaction.revealIdentity
-        ? "Anonymous"
-        : chat.participants.find((p: any) => p.userID === applicantID)?.username || "";
     }
   };
 
@@ -121,7 +167,7 @@ const Chat = () => {
                   }`}
                   onPress={() => handleSelectChat(chat.chatID)}
                 >
-                  <p>{chat.participants.map((p: any) => p.username).join(", ")}</p>
+                  <p>{findOtherUsername(chat)}</p>
                 </Button>
               </li>
             ))}
@@ -147,16 +193,7 @@ const Chat = () => {
                   messages.map((msg: any) => (
                     <div key={msg.msgID} className="p-2 border-b">
                       <p>
-                        <strong>
-                          {msg.sender === user.userID &&
-                          selectedChat.chatType === "job" &&
-                          selectedChat.transaction &&
-                          selectedChat.transaction.applicantAnonymous &&
-                          !selectedChat.transaction.revealIdentity
-                            ? "You (Anonymous)"
-                            : msg.sender}
-                        </strong>
-                        :{" "}
+                        <strong>{getDisplayName(selectedChat, msg.sender)}</strong>:{" "}
                         {editingMessageID === msg.msgID ? (
                           <>
                             <Textarea
@@ -164,12 +201,8 @@ const Chat = () => {
                               onChange={(e) => setEditedText(e.target.value)}
                               className="inline-block w-2/3"
                             />
-                            <Button onPress={() => handleEditMessage(msg.msgID)}>
-                              Save
-                            </Button>
-                            <Button onPress={() => setEditingMessageID(null)}>
-                              Cancel
-                            </Button>
+                            <Button onPress={() => handleEditMessage(msg.msgID)}>Save</Button>
+                            <Button onPress={() => setEditingMessageID(null)}>Cancel</Button>
                           </>
                         ) : (
                           msg.message
@@ -224,9 +257,7 @@ const Chat = () => {
                     <label className="block mb-2">
                       Status:
                       <select
-                        onChange={(e) =>
-                          setJobUpdate((prev) => ({ ...prev, status: e.target.value }))
-                        }
+                        onChange={(e) => setJobUpdate((prev) => ({ ...prev, status: e.target.value }))}
                         className="ml-2"
                       >
                         <option value="">Select status</option>
@@ -263,11 +294,7 @@ const Chat = () => {
 
   return (
     <DefaultLayout>
-      <Tabs
-        selectedKey={selectedKey}
-        onSelectionChange={setSelectedKey}
-        aria-label="Chats"
-      >
+      <Tabs selectedKey={selectedKey} onSelectionChange={setSelectedKey} aria-label="Chats">
         <Tab key="general" title="General Chats">
           {renderChatLayout(generalChats)}
         </Tab>

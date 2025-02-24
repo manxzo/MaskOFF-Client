@@ -128,7 +128,7 @@ const useChats = () => {
 
   const updateJobSettings = async (
     chatID: string,
-    updateData: { revealIdentity?: boolean; status?: string; offerPrice?: number }
+    updateData: { applicantAnonymous?: boolean; status?: string; offerPrice?: number }
   ) => {
     setLoading(true);
     setError(null);

@@ -186,7 +186,7 @@ export const deleteChat = (chatID: string) =>
 // Update job chat settings 
 export const updateJobChatSettings = (
   chatID: string,
-  updateData: { revealIdentity?: boolean; status?: string; offerPrice?: number }
+  updateData: { applicantAnonymous?: boolean; status?: string; offerPrice?: number }
 ) => apiClient.put(`/chat/job/update/${chatID}`, updateData);
 
 // ===== Job Endpoints =====

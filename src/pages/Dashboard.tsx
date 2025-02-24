@@ -58,7 +58,7 @@ const Dashboard = () => {
         try {
             await addPostComment(postID, {
                 content: commentContent[postID],
-                isAnonymous: isAnonymous[postID],
+                isAnonymous: isAnonymous,
             });
             setCommentContent((prev) => ({ ...prev, [postID]: "" }));
             

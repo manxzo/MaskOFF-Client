@@ -151,7 +151,7 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
               break;
             }
             case "refresh":{
-              setRefresh(!refresh)
+              setRefresh((prev)=> !prev);
               break;
             }
             default:
