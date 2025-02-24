@@ -4,6 +4,7 @@ import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { useUser } from "@/hooks/useUser";
 import { useNavigate } from "react-router-dom";
+import { EyeFilledIcon,EyeSlashFilledIcon } from "./icons";
 import {
   Modal,
   ModalHeader,
@@ -139,10 +140,28 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
                         isRequired
                         label="Password"
                         placeholder="Enter your password"
-                        type="password"
+                        
                         name="password"
                         value={form.password || ""}
                         onChange={handleChange}
+                        endContent={
+                          <button
+                            aria-label="toggle password visibility"
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleVisibility}
+                          >
+                            {isVisible ? (
+                              <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                              <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                          </button>
+                        }
+                      
+                       
+                        type={isVisible ? "text" : "password"}
+                        variant="bordered"
                       />
                       <p className="text-center text-small">
                         Need to create an account?{" "}
@@ -187,19 +206,55 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
                         isRequired
                         label="Password"
                         placeholder="Enter your password"
-                        type="password"
+                        
                         name="password"
                         value={form.password || ""}
                         onChange={handleChange}
+                        endContent={
+                          <button
+                            aria-label="toggle password visibility"
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleVisibility}
+                          >
+                            {isVisible ? (
+                              <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                              <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                          </button>
+                        }
+                      
+                       
+                        type={isVisible ? "text" : "password"}
+                        variant="bordered"
                       />
                       <Input
                         isRequired
                         label="Confirm Password"
                         placeholder="Re-Enter your password"
-                        type="password"
+                       
                         name="confirmPassword"
                         value={form.confirmPassword || ""}
                         onChange={handleChange}
+                        endContent={
+                          <button
+                            aria-label="toggle password visibility"
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleVisibility}
+                          >
+                            {isVisible ? (
+                              <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                              <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                          </button>
+                        }
+                      
+                       
+                        type={isVisible ? "text" : "password"}
+                        variant="bordered"
                       />
                       <Input
                         isRequired

@@ -1,41 +1,53 @@
-// ChatList.tsx
-import { Spinner } from "@heroui/spinner";
-import { Button } from "@heroui/button";
 
+import { Button, Avatar } from "@heroui/react";
 
-
-const ChatList = ({
-  filteredChats,
+export const ChatList = ({
+  chats = [],
   selectedChatID,
   loading,
   error,
-  handleSelectChat,
-  findOtherUser
-}) => (
-  <div className="w-full md:w-1/3 border-r pr-2">
-    {loading ? (
-      <Spinner size="sm" />
-    ) : error ? (
-      <p className="text-red-500">{error}</p>
-    ) : filteredChats.length === 0 ? (
-      <p>No chats available.</p>
-    ) : (
-      <ul>
-        {filteredChats.map((chat: any) => (
-          <li key={chat.chatID}>
-            <Button
-              className={`p-2 border-b w-full text-left ${
-                selectedChatID === chat.chatID ? "bg-gray-200" : ""
-              }`}
-              onPress={() => handleSelectChat(chat.chatID)}
-            >
-              <p>{findOtherUser(chat)?.username}</p>
-            </Button>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
+  onSelectChat,
+  getDisplayUser
+}) => {
+  
+  if (loading) {
+    return ;
+  }
 
-export default ChatList;
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
+
+  if (!Array.isArray(chats) || chats.length === 0) {
+    return <p>No chats available.</p>;
+  }
+
+  return (
+    <div className="w-full md:w-1/3 border-r pr-2">
+      <ul>
+        {chats.map((chat) => {
+          const displayUser = getDisplayUser(chat);
+          return (
+            <li key={chat.chatID}>
+              <Button
+                className={`p-2 border-b w-full text-left ${
+                  selectedChatID === chat.chatID ? "bg-gray-200" : ""
+                }`}
+                onPress={() => onSelectChat(chat.chatID)}
+              >
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    src={displayUser?.avatar || "/fallback-avatar.png"}
+                    size="sm"
+                    alt={displayUser?.username || "Anonymous"}
+                  />
+                  <p>{displayUser?.username || "Anonymous"}</p>
+                </div>
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+};

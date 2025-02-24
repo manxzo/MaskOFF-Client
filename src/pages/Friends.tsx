@@ -22,6 +22,7 @@ const FriendPage: React.FC = () => {
   const [loadingUsers, setLoadingUsers] = useState<boolean>(false);
 
   useEffect(() => {
+    
     const fetchUsers = async () => {
       setLoadingUsers(true);
       try {

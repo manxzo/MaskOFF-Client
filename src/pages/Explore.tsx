@@ -35,6 +35,7 @@ const Explore = () => {
 
   // fetch posts and jobs when refresh changes
   useEffect(() => {
+  
     fetchPosts();
     fetchJobs();
   }, [refresh]);

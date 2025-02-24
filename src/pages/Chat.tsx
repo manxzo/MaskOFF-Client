@@ -1,30 +1,23 @@
-
-import { useEffect, useState, useContext } from "react";
+//@ts-nocheck
+import { useState, useEffect, useContext } from "react";
+import { Tabs, Tab } from "@heroui/react";
 import DefaultLayout from "@/layouts/default";
 import useChats from "@/hooks/useChats";
-import { Tabs, Tab } from "@heroui/react";
+import { ChatWindow } from "@/components/ChatWindow";
+import { ChatJobSettings } from "@/components/ChatJobSettings";
+import { ChatList } from "@/components/ChatList";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 
-// Import the subcomponents
-import ChatList from "@/components/ChatList";
-import ChatWindow from "@/components/ChatWindow";
-import ChatJobSettings from "@/components/ChatJobSettings";
-import { deleteMessage } from "@/services/services";
-
-
 const Chat = () => {
-  const { user } = useContext(GlobalConfigContext);
-  const [selectedKey, setSelectedKey] = useState<"general" | "job">("general");
-  const [selectedChatID, setSelectedChatID] = useState<string>("");
-  const [newMessage, setNewMessage] = useState<string>("");
-  const [editingMessageID, setEditingMessageID] = useState<string | null>(null);
-  const [editedText, setEditedText] = useState<string | null>(null);
+  const { user,refreshChats } = useContext(GlobalConfigContext);
+
+  const [selectedKey, setSelectedKey] = useState("general");
+  const [selectedChatID, setSelectedChatID] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [selectedMsgID, setSelectedMsgID] = useState(null);
+  const [editedMsg, setEditedMsg] = useState("");
   const [updateSettingsMode, setUpdateSettingsMode] = useState(false);
-  const [jobUpdate, setJobUpdate] = useState<{
-    applicantAnonymous?: boolean;
-    status?: string;
-    offerPrice?: number;
-  }>({});
+  const [jobUpdate, setJobUpdate] = useState({ applicantAnonymous:false, status:"", offerPrice:0});
 
   const {
     chats,
@@ -38,14 +31,15 @@ const Chat = () => {
     removeChat,
     editChatMessage,
     updateJobSettings,
+    deleteChatMessage
   } = useChats();
 
-  // Split chats by type
-  const generalChats = chats.filter((chat) => chat.chatType === "general");
-  const jobChats = chats.filter((chat) => chat.chatType === "job");
-  console.log(chats);
+ 
+  const generalChats = (chats || []).filter((c) => c.chatType === "general");
+  const jobChats = (chats || []).filter((c) => c.chatType === "job");
 
-  const findOtherUser = (chat) => {
+
+  const getDisplayUser = (chat) => {
     const participants = chat.participants;
     if (chat.chatType === "general") {
       const otherUser = participants.filter((p) => p.userID !== user?.userID)[0]
@@ -61,113 +55,195 @@ const Chat = () => {
       return otherUser;
     }
   }
-  const isUserSender = (message) => {
-    const isSender = message.sender === user.userID;
-    return isSender;
-  }
-  // Fetch chats whenever the selected key (chat type) changes
+
+  
+  const isUserSender = (msg) => msg?.sender === user?.userID;
+
+  
+  const isUserAnonymous = (chat) => {
+    if (!chat || chat.chatType !== "job") return false;
+    const applicantID = chat.transaction?.applicantID;
+    const applicantAnonymous = chat.transaction?.applicantAnonymous;
+    return applicantID === user?.userID && applicantAnonymous;
+  };
+
   useEffect(() => {
+    if (!localStorage.getItem("token")) return;
     (async () => {
-      await fetchChats();
+      try {
+        await fetchChats();
+      } catch (err) {
+        console.error("Error fetching chats:", err);
+      }
+
+     
       const currentChats = selectedKey === "general" ? generalChats : jobChats;
       if (!selectedChat && currentChats.length > 0) {
         await selectChatByID(currentChats[0].chatID);
         setSelectedChatID(currentChats[0].chatID);
       }
     })();
-  }, [selectedKey]);
+   
+  }, [selectedKey,selectedChat,refreshChats]);
 
-  const handleSelectChat = async (chatID: string) => {
+  const handleSelectChat = async (chatID) => {
     setSelectedChatID(chatID);
-    await selectChatByID(chatID);
     setUpdateSettingsMode(false);
-    setEditingMessageID(null);
+    setSelectedMsgID(null);
+    try {
+      await selectChatByID(chatID);
+      const {applicantAnonymous,status,offerPrice} = await selectedChat?.transaction;
+      setJobUpdate({applicantAnonymous:applicantAnonymous,status:status,offerPrice:offerPrice})
+    } catch (err) {
+      console.error("Error selecting chat:", err);
+    }
   };
 
   const handleSendMessage = async () => {
-    if (selectedChat && newMessage.trim()) {
-      await sendChatMessage({
-        chatID: selectedChat.chatID,
-        text: newMessage.trim(),
-      });
+    if (!selectedChat || !newMessage.trim()) return;
+    try {
+      await sendChatMessage({ chatID: selectedChat.chatID, text: newMessage.trim() });
       setNewMessage("");
+    } catch (err) {
+      console.error("Error sending message:", err);
     }
   };
 
-  const handleEditMessage = async (messageID: string) => {
-    if (selectedChat && editedText.trim()) {
-      await editChatMessage(selectedChat.chatID, messageID, editedText.trim());
-      setEditingMessageID(null);
-      setEditedText("");
+  const handleEditMessage = async (messageID) => {
+    if (!selectedChat || !editedMsg.trim()) return;
+    try {
+      await editChatMessage(selectedChat.chatID, messageID, editedMsg.trim());
+      setSelectedMsgID(null);
+      setEditedMsg("");
+    } catch (err) {
+      console.error("Error editing message:", err);
     }
   };
-  const handleDeleteMessage = async (messageID: string) => {
-    if (selectedChat && messageID) {
-      await deleteMessage(selectedChat.chatID, messageID);
+
+  const handleDeleteMessage = async (messageID) => {
+    if (!selectedChat || !messageID) return;
+    try {
+      await deleteChatMessage(selectedChat.chatID, messageID);
+    } catch (err) {
+      console.error("Error deleting message:", err);
     }
+  };
+  const handleJobSettingChange = (e)=>{
+     
+      setJobUpdate((prev)=>({...prev,[e.name]:e.value}));
   }
-
-  const handleJobSettingsUpdate = async () => {
-    if (selectedChat) {
-      await updateJobSettings(selectedChat.chatID, jobUpdate);
+  const handleJobSettingsUpdate = async (isAnon) => {
+    if (!selectedChat) return;
+    try {
+      await updateJobSettings(selectedChat.chatID, {...jobUpdate,applicantAnonymous:isAnon});
+      
       setUpdateSettingsMode(false);
+    } catch (err) {
+      console.error("Error updating job settings:", err);
     }
   };
 
-  // Main layout using the three subcomponents
-  const renderChatLayout = (filteredChats: any[]) => (
-    <div className="flex flex-col md:flex-row gap-4 p-4">
-      <ChatList
-        filteredChats={filteredChats}
-        selectedChatID={selectedChatID}
-        loading={loading}
-        error={error}
-        handleSelectChat={handleSelectChat}
-        findOtherUser={findOtherUser}
-      />
-      <div className="w-full md:w-2/3">
-        <ChatWindow
-          selectedChat={selectedChat}
-          messages={messages}
-          loading={loading}
-          editingMessageID={editingMessageID}
-          setEditingMessageID={setEditingMessageID}
-          editedText={editedText}
-          setEditedText={setEditedText}
-          handleEditMessage={handleEditMessage}
-          handleDeleteMessage={handleDeleteMessage}
-          newMessage={newMessage}
-          setNewMessage={setNewMessage}
-          handleSendMessage={handleSendMessage}
-          user={user}
-          findOtherUser={findOtherUser}
-          isUserSender={isUserSender}
-        />
-        <ChatJobSettings
-          selectedChat={selectedChat}
-          updateSettingsMode={updateSettingsMode}
-          setUpdateSettingsMode={setUpdateSettingsMode}
-          jobUpdate={jobUpdate}
-          setJobUpdate={setJobUpdate}
-          handleJobSettingsUpdate={handleJobSettingsUpdate}
-          removeChat={removeChat}
-        />
-      </div>
-    </div>
-  );
+  const handleRemoveChat = async (chatID) => {
+    try {
+      await removeChat(chatID);
+      // Optionally, reset selection if the user just deleted the currently selected chat
+      if (chatID === selectedChatID) {
+        setSelectedChatID("");
+      }
+    } catch (err) {
+      console.error("Error removing chat:", err);
+    }
+  };
 
   return (
     <DefaultLayout>
-      <Tabs
-        selectedKey={selectedKey}
-        onSelectionChange={setSelectedKey}
-        aria-label="Chats"
-      >
+      <Tabs selectedKey={selectedKey} onSelectionChange={setSelectedKey} aria-label="Chats">
         <Tab key="general" title="General Chats">
-          {renderChatLayout(generalChats)}
+          <div className="flex flex-col md:flex-row gap-4 p-4">
+            <ChatList
+              chats={generalChats}
+              selectedChatID={selectedChatID}
+              loading={loading}
+              error={error}
+              onSelectChat={handleSelectChat}
+              getDisplayUser={getDisplayUser}
+            />
+            <div className="w-full md:w-2/3">
+              <ChatWindow
+                selectedChat={selectedChat}
+                messages={messages}
+                loading={loading}
+                editingMessageID={selectedMsgID}
+                editedText={editedMsg}
+                setEditedText={setEditedMsg}
+                onEditMessage={handleEditMessage}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                onSendMessage={handleSendMessage}
+                user={user}
+                getDisplayUser={getDisplayUser}
+                isUserSender={isUserSender}
+                setEditingMessageID={setSelectedMsgID}
+                onDeleteMessage={handleDeleteMessage}
+                isUserAnonymous={isUserAnonymous}
+              />
+              <ChatJobSettings
+                selectedChat={selectedChat}
+                updateSettingsMode={updateSettingsMode}
+                setUpdateSettingsMode={setUpdateSettingsMode}
+                jobUpdate={jobUpdate}
+                onJobSettingsUpdate={handleJobSettingsUpdate}
+                handleJobSettingChange={handleJobSettingChange}
+                onRemoveChat={handleRemoveChat}
+                user={user}
+                loading={loading}
+              />
+            </div>
+          </div>
         </Tab>
+
         <Tab key="job" title="Job Chats">
-          {renderChatLayout(jobChats)}
+          <div className="flex flex-col md:flex-row gap-4 p-4">
+            <ChatList
+              chats={jobChats}
+              selectedChatID={selectedChatID}
+              loading={loading}
+              error={error}
+              onSelectChat={handleSelectChat}
+              getDisplayUser={getDisplayUser}
+            />
+            <div className="w-full md:w-2/3">
+              <ChatWindow
+                selectedChat={selectedChat}
+                messages={messages}
+                loading={loading}
+                editingMessageID={selectedMsgID}
+                editedText={editedMsg}
+                setEditedText={setEditedMsg}
+                onEditMessage={handleEditMessage}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                onSendMessage={handleSendMessage}
+                user={user}
+                getDisplayUser={getDisplayUser}
+                isUserSender={isUserSender}
+                setEditingMessageID={setSelectedMsgID}
+                onDeleteMessage={handleDeleteMessage}
+                isUserAnonymous={isUserAnonymous}
+              />
+              <ChatJobSettings
+                selectedChat={selectedChat}
+                updateSettingsMode={updateSettingsMode}
+                setUpdateSettingsMode={setUpdateSettingsMode}
+                jobUpdate={jobUpdate}
+                onJobSettingsUpdate={handleJobSettingsUpdate}
+                handleJobSettingChange={handleJobSettingChange}
+                onRemoveChat={handleRemoveChat}
+                user={user}
+                loading={loading}
+              />
+            </div>
+          </div>
         </Tab>
       </Tabs>
     </DefaultLayout>

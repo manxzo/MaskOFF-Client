@@ -54,6 +54,7 @@ const Jobs = () => {
   const [initialFormData, setInitialFormData] = useState<JobFormData | null>(null);
 
   useEffect(() => {
+    
     fetchJobs();
   }, []);
 
