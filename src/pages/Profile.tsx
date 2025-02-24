@@ -33,7 +33,7 @@ const Profile = () => {
       setLoading(true);
       try {
         if (username) {
-          const res = await axios.get<PublicProfileResponse>(`httpss://${import.meta.env.VITE_APP_SERVER_URL}/api/user/by-username/${username}`);
+          const res = await axios.get<PublicProfileResponse>(`https://${import.meta.env.VITE_APP_SERVER_URL}/api/user/by-username/${username}`);
           setProfileData(res.data);
         } else if (user && user.profile) {
           setProfileData({
@@ -53,13 +53,23 @@ const Profile = () => {
           });
         }
       } catch (err) {
-        console.error("Error fetching profile:", err);
+        console.error("error fetching profile:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
   }, [username, user]);
+
+  // helper to check if a url is valid
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
 
   return (
     <DefaultLayout>
@@ -89,7 +99,21 @@ const Profile = () => {
                 <p>Achievements: {profileData.profile.publicInfo.achievements.join(", ")}</p>
               )}
               {profileData.profile.publicInfo.portfolio && (
-                <p>Portfolio: {profileData.profile.publicInfo.portfolio}</p>
+                <p>
+                  Portfolio:{" "}
+                  {isValidUrl(profileData.profile.publicInfo.portfolio) ? (
+                    <a
+                      href={profileData.profile.publicInfo.portfolio}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {profileData.profile.publicInfo.portfolio}
+                    </a>
+                  ) : (
+                    profileData.profile.publicInfo.portfolio
+                  )}
+                </p>
               )}
             </CardBody>
           </Card>
