@@ -21,7 +21,6 @@ export const useUser = () => {
     error,
     setError,
     user,
-    setChats,
   } = globalContext;
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -161,7 +160,6 @@ export const useUser = () => {
   const logoutUser = () => {
     logout();
     setUser(null);
-    setChats([])
   };
 
   return {
