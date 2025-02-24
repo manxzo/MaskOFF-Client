@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState,useContext } from "react";
 import {
   listChats,
   sendMessage,
@@ -7,8 +7,9 @@ import {
   editMessage,
   updateJobChatSettings,
 } from "@/services/services";
-
+import { GlobalConfigContext } from "@/config/GlobalConfig";
 const useChats = () => {
+  const {refreshChats} = useContext(GlobalConfigContext)
   const [chats, setChats] = useState<any[]>([]);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -36,7 +37,12 @@ const useChats = () => {
       setLoading(false);
     }
   };
-
+useEffect(()=>{
+  const fetchWS = async ()=>{
+  await fetchChats()
+  };
+  fetchWS();
+},[refreshChats])
   const selectChatByID = async (chatID: string) => {
     setLoading(true);
     setError(null);
