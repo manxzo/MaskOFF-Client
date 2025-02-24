@@ -1,9 +1,9 @@
 import { useState, useContext, useEffect } from "react";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 import DefaultLayout from "@/layouts/default";
-import { Card, CardBody, CardHeader, Button, Input, Textarea, addToast } from "@heroui/react";
+import { Card, CardBody, CardHeader, Button, Input, Textarea, Switch, addToast } from "@heroui/react";
 import { title } from "@/components/primitives";
-import { updateProfile, uploadAvatar } from "@/services/services";
+import { updateProfile, uploadAvatar, deleteAvatar } from "@/services/services";
 import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
@@ -16,16 +16,20 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
+  const [privacy, setPrivacy] = useState(user?.profile?.privacy || false);
 
+  // update state when user changes
   useEffect(() => {
     if (user && user.profile) {
       setBio(user.profile.publicInfo.bio || "");
       setSkills(user.profile.publicInfo.skills?.join(", ") || "");
       setAchievements(user.profile.publicInfo.achievements?.join(", ") || "");
       setPortfolio(user.profile.publicInfo.portfolio || "");
+      setPrivacy(user.profile.privacy || false);
     }
   }, [user]);
 
+  // handle form submit including privacy toggle
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -37,6 +41,7 @@ const Settings = () => {
           achievements: achievements.split(",").map((s) => s.trim()),
           portfolio,
         },
+        privacy,
       });
       setUser({ ...user, profile: res.data.profile });
       addToast({ title: "Settings Updated", color: "success" });
@@ -57,7 +62,7 @@ const Settings = () => {
     }
   };
 
-  // upload avatar and update user state; using import.meta.env instead of process.env
+  // upload avatar and update user state
   const handleAvatarUpload = async () => {
     if (!avatarFile) return;
     setLoading(true);
@@ -76,6 +81,22 @@ const Settings = () => {
     }
   };
 
+  // handle avatar deletion to revert back to default image
+  const handleAvatarDelete = async () => {
+    setLoading(true);
+    try {
+      await deleteAvatar(user?.userID);
+      // clear avatar in state
+      setUser({ ...user, avatar: undefined });
+      addToast({ title: "Avatar Deleted", color: "success" });
+    } catch (err: any) {
+      console.error("avatar delete error:", err.response?.data || err.message);
+      addToast({ title: "Avatar Deletion Failed", color: "danger" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <DefaultLayout>
       <div className="p-8 max-w-xl mx-auto">
@@ -89,18 +110,31 @@ const Settings = () => {
             <form onSubmit={handleSave} className="flex flex-col gap-4">
               {/* avatar section */}
               <div>
-                <label htmlFor="avatar" className="block text-sm font-medium text-gray-700">Avatar</label>
+                <label htmlFor="avatar" className="block text-sm font-medium text-gray-700">
+                  Avatar
+                </label>
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="avatar preview" className="w-24 h-24 rounded-full mb-2" />
                 ) : user?.avatar ? (
                   <img src={user.avatar} alt="user avatar" className="w-24 h-24 rounded-full mb-2" />
                 ) : null}
                 <input type="file" accept="image/*" onChange={handleAvatarChange} />
-                <Button type="button" onPress={handleAvatarUpload} color="primary" isLoading={loading}>
-                  Upload Avatar
-                </Button>
+                <div className="flex gap-2 mt-2">
+                  <Button type="button" onPress={handleAvatarUpload} color="primary" isLoading={loading}>
+                    Upload Avatar
+                  </Button>
+                  <Button type="button" onPress={handleAvatarDelete} color="danger" isLoading={loading}>
+                    Delete Avatar
+                  </Button>
+                </div>
               </div>
-
+              {/* toggle section */}
+              <div className="flex items-center gap-2">
+                <Switch isSelected={privacy} onChange={() => setPrivacy(!privacy)}>
+                  {privacy ? "MASKon" : "MASKoff"}
+                </Switch>
+                <span className="text-sm text-gray-700">Toggle Profile Visibility</span>
+              </div>
               {/* bio section */}
               <Textarea
                 label="Bio"
