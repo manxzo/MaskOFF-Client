@@ -33,7 +33,7 @@ const Profile = () => {
       setLoading(true);
       try {
         if (username) {
-          const res = await axios.get<PublicProfileResponse>(`http://${import.meta.env.VITE_APP_SERVER_URL}/api/user/by-username/${username}`);
+          const res = await axios.get<PublicProfileResponse>(`httpss://${import.meta.env.VITE_APP_SERVER_URL}/api/user/by-username/${username}`);
           setProfileData(res.data);
         } else if (user && user.profile) {
           setProfileData({

@@ -2,7 +2,7 @@ import axios from "axios";
 import { addToast } from "@heroui/toast";
 
 // base URL from env (REACT_APP_API_BASE_URL)
-const VITE_APP_SERVER_URL = `http://${import.meta.env.VITE_APP_SERVER_URL}/api` || "http://localhost:3000/api";
+const VITE_APP_SERVER_URL = `https://${import.meta.env.VITE_APP_SERVER_URL}/api` || "https://localhost:3000/api";
 
 // axios instance
 const apiClient = axios.create({
@@ -161,7 +161,7 @@ export const sendMessage = (payload: {
   recipientID?: string;
   text: string;
   chatType?: string;
-  jobID?:string;
+  jobID?: string;
 }) => apiClient.post("/chat/send", payload);
 
 // Get messages for a chat
@@ -197,7 +197,7 @@ export const updateJob = (jobID: string, data: any) => apiClient.put(`/jobs/${jo
 export const deleteJob = (jobID: string) => apiClient.delete(`/jobs/${jobID}`);
 
 // ===== Apply to Job Endpoints =====
-export const applyToJob = (jobID: string, message?: string) => 
+export const applyToJob = (jobID: string, message?: string) =>
   apiClient.post(`/jobs/${jobID}/apply`, { message });
 
 export const getJobApplications = (jobID: string) =>
