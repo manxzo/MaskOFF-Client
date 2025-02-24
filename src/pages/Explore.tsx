@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from "react";
+import  { useEffect, useContext, useState } from "react";
 import DefaultLayout from "@/layouts/default";
 import usePosts from "@/hooks/usePosts";
 import useJobs from "@/hooks/useJobs";
