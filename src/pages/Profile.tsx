@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { GlobalConfigContext } from "@/config/GlobalConfig";
 import DefaultLayout from "@/layouts/default";
-import { Card, CardBody, Spinner } from "@heroui/react";
+import { Avatar, Card, CardBody, Spinner } from "@heroui/react";
 import { title, subtitle } from "@/components/primitives";
 import axios from "axios";
 
@@ -47,6 +47,7 @@ const Profile = () => {
             },
             profile: {
               publicInfo: user.profile.publicInfo, // may be undefined if profile is private
+
             },
           });
         }
@@ -78,15 +79,17 @@ const Profile = () => {
           <Card>
             <CardBody>
               {profileData.user.avatar && (
-                <img
+                <Avatar
                   src={profileData.user.avatar}
-                  alt="User Avatar"
+                  fallback
                   className="w-24 h-24 rounded-full mb-4"
+                  name={profileData.user.username}
                 />
               )}
               <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>
                 {profileData.user.name} (@{profileData.user.username})
               </h1>
+
               {profileData.profile.publicInfo ? (
                 <>
                   <p className={subtitle({ fullWidth: true })}>
@@ -114,6 +117,7 @@ const Profile = () => {
                         profileData.profile.publicInfo.portfolio
                       )}
                     </p>
+
                   )}
                 </>
               ) : (

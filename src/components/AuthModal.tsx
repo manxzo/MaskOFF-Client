@@ -4,6 +4,7 @@ import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
 import { useUser } from "@/hooks/useUser";
 import { useNavigate } from "react-router-dom";
+import { EyeFilledIcon,EyeSlashFilledIcon } from "./icons";
 import {
   Modal,
   ModalHeader,
@@ -25,7 +26,7 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
   const [selected, setSelected] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+const [isVisible,setIsVisible] = useState(false)
   const loginForm = { username: "", password: "" };
   const registerForm = {
     name: "",
@@ -39,7 +40,9 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
   const forgetPasswordForm = { email: "" };
 
   const [form, setForm] = useState(loginForm);
-
+ const checkPassword = (value) =>{ const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/
+  return passwordRegex.test(value);
+ };
   useEffect(() => {
     setError(null);
     switch (selected) {
@@ -72,7 +75,7 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
     }));
   };
 
-
+  const toggleVisibility = () => setIsVisible(!isVisible);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -139,10 +142,28 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
                         isRequired
                         label="Password"
                         placeholder="Enter your password"
-                        type="password"
+                        
                         name="password"
                         value={form.password || ""}
                         onChange={handleChange}
+                        endContent={
+                          <button
+                            aria-label="toggle password visibility"
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleVisibility}
+                          >
+                            {isVisible ? (
+                              <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                              <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                          </button>
+                        }
+                      
+                       
+                        type={isVisible ? "text" : "password"}
+                        variant="bordered"
                       />
                       <p className="text-center text-small">
                         Need to create an account?{" "}
@@ -187,19 +208,57 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
                         isRequired
                         label="Password"
                         placeholder="Enter your password"
-                        type="password"
+                        
                         name="password"
                         value={form.password || ""}
                         onChange={handleChange}
+                        endContent={
+                          <button
+                            aria-label="toggle password visibility"
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleVisibility}
+                          >
+                            {isVisible ? (
+                              <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                              <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                          </button>
+                        }
+                      
+                       
+                        type={isVisible ? "text" : "password"}
+                        variant="bordered"
+                        errorMessage="Password not strong enough!"
+                        isInvalid={checkPassword(form.password)}
                       />
                       <Input
                         isRequired
                         label="Confirm Password"
                         placeholder="Re-Enter your password"
-                        type="password"
+                       
                         name="confirmPassword"
                         value={form.confirmPassword || ""}
                         onChange={handleChange}
+                        endContent={
+                          <button
+                            aria-label="toggle password visibility"
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleVisibility}
+                          >
+                            {isVisible ? (
+                              <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                              <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                          </button>
+                        }
+                      
+                       
+                        type={isVisible ? "text" : "password"}
+                        variant="bordered"
                       />
                       <Input
                         isRequired

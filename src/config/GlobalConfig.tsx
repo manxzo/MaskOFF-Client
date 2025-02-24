@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import { getUser, listChats } from "@/services/services";
+import { getUser } from "@/services/services";
 import { jwtDecode } from "jwt-decode";
 
 export interface PublicProfile {
@@ -65,21 +65,17 @@ export interface Message {
   timestamp: string;
 }
 
-export interface Chat {
-  chatID: string;
-  participants: Friend[];
-  messages: Message[];
-}
+
 
 export interface GlobalConfigContextType {
   user: User | null;
-  chats: Chat[];
   error: string | null;
   refresh:boolean;
+  refreshChats:boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  setChats: React.Dispatch<React.SetStateAction<Chat[] | null>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   setRefresh:React.Dispatch<React.SetStateAction<boolean>>;
+  setRefreshChats:React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const GlobalConfigContext = createContext<GlobalConfigContextType | undefined>(undefined);
@@ -92,9 +88,9 @@ interface JwtPayload {
 
 export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [chats, setChats] = useState<Chat[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refresh,setRefresh] = useState(false);
+  const [refreshChats,setRefreshChats] = useState(false);
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -142,12 +138,7 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
               break;
             }
             case "chats": {
-              const res = await listChats();
-              const chatsFromRes: Chat[] = res.data.chats || res.data;
-              const dedupedChats: Chat[] = Array.from(
-                new Map(chatsFromRes.map((chat: any) => [chat.chatID, chat])).values()
-              );
-              setChats(dedupedChats);
+            setRefreshChats((prev)=>!prev);
               break;
             }
             case "refresh":{
@@ -179,13 +170,13 @@ export const GlobalConfigProvider = ({ children }: { children: ReactNode }) => {
 
   const contextValue: GlobalConfigContextType = {
     user,
-    chats,
     error,
     setUser,
-    setChats,
     setError,
     refresh,
-    setRefresh
+    setRefresh,
+    setRefreshChats,
+    refreshChats
   };
 
   return (

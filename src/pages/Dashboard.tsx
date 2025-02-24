@@ -26,6 +26,7 @@ const Dashboard = () => {
     const [commentContent, setCommentContent] = useState<{ [key: string]: string }>({});
    
     useEffect(() => {
+       
         fetchPosts();
 
         console.log(posts);
