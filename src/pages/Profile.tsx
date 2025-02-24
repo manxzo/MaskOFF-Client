@@ -13,7 +13,7 @@ interface PublicProfileResponse {
     avatar?: string; // ensure avatar is available if provided
   };
   profile: {
-    publicInfo: {
+    publicInfo?: { // publicInfo is optional if profile is private
       bio: string;
       skills: string[];
       achievements: string[];
@@ -28,12 +28,15 @@ const Profile = () => {
   const [profileData, setProfileData] = useState<PublicProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
         if (username) {
-          const res = await axios.get<PublicProfileResponse>(`https://${import.meta.env.VITE_APP_SERVER_URL}/api/user/by-username/${username}`);
+          const res = await axios.get<PublicProfileResponse>(
+            `https://${import.meta.env.VITE_APP_SERVER_URL}/api/user/by-username/${username}`
+          );
           setProfileData(res.data);
         } else if (user && user.profile) {
           setProfileData({
@@ -43,12 +46,7 @@ const Profile = () => {
               avatar: user.avatar, // use avatar from context
             },
             profile: {
-              publicInfo: {
-                bio: user.profile.publicInfo.bio,
-                skills: user.profile.publicInfo.skills,
-                achievements: user.profile.publicInfo.achievements,
-                portfolio: user.profile.publicInfo.portfolio,
-              },
+              publicInfo: user.profile.publicInfo, // may be undefined if profile is private
             },
           });
         }
@@ -89,31 +87,37 @@ const Profile = () => {
               <h1 className={title({ size: "lg", color: "cyan", fullWidth: true })}>
                 {profileData.user.name} (@{profileData.user.username})
               </h1>
-              <p className={subtitle({ fullWidth: true })}>
-                Bio: {profileData.profile.publicInfo.bio || "No bio provided."}
-              </p>
-              {profileData.profile.publicInfo.skills && (
-                <p>Skills: {profileData.profile.publicInfo.skills.join(", ")}</p>
-              )}
-              {profileData.profile.publicInfo.achievements && (
-                <p>Achievements: {profileData.profile.publicInfo.achievements.join(", ")}</p>
-              )}
-              {profileData.profile.publicInfo.portfolio && (
-                <p>
-                  Portfolio:{" "}
-                  {isValidUrl(profileData.profile.publicInfo.portfolio) ? (
-                    <a
-                      href={profileData.profile.publicInfo.portfolio}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      {profileData.profile.publicInfo.portfolio}
-                    </a>
-                  ) : (
-                    profileData.profile.publicInfo.portfolio
+              {profileData.profile.publicInfo ? (
+                <>
+                  <p className={subtitle({ fullWidth: true })}>
+                    Bio: {profileData.profile.publicInfo.bio || "No bio provided."}
+                  </p>
+                  {profileData.profile.publicInfo.skills && (
+                    <p>Skills: {profileData.profile.publicInfo.skills.join(", ")}</p>
                   )}
-                </p>
+                  {profileData.profile.publicInfo.achievements && (
+                    <p>Achievements: {profileData.profile.publicInfo.achievements.join(", ")}</p>
+                  )}
+                  {profileData.profile.publicInfo.portfolio && (
+                    <p>
+                      Portfolio:{" "}
+                      {isValidUrl(profileData.profile.publicInfo.portfolio) ? (
+                        <a
+                          href={profileData.profile.publicInfo.portfolio}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {profileData.profile.publicInfo.portfolio}
+                        </a>
+                      ) : (
+                        profileData.profile.publicInfo.portfolio
+                      )}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p>User profile is private.</p>
               )}
             </CardBody>
           </Card>
