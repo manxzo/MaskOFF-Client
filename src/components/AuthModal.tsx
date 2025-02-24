@@ -26,7 +26,7 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
   const [selected, setSelected] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+const [isVisible,setIsVisible] = useState(false)
   const loginForm = { username: "", password: "" };
   const registerForm = {
     name: "",
@@ -40,7 +40,9 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
   const forgetPasswordForm = { email: "" };
 
   const [form, setForm] = useState(loginForm);
-
+ const checkPassword = (value) =>{ const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/
+  return passwordRegex.test(value);
+ };
   useEffect(() => {
     setError(null);
     switch (selected) {
@@ -73,7 +75,7 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
     }));
   };
 
-
+  const toggleVisibility = () => setIsVisible(!isVisible);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -228,6 +230,8 @@ export const AuthModal = ({ onOpenChange, isOpen }) => {
                        
                         type={isVisible ? "text" : "password"}
                         variant="bordered"
+                        errorMessage="Password not strong enough!"
+                        isInvalid={checkPassword(form.password)}
                       />
                       <Input
                         isRequired
